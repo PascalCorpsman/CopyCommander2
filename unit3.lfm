@@ -1,0 +1,122 @@
+object Form3: TForm3
+  Left = 355
+  Height = 485
+  Top = 129
+  Width = 632
+  Caption = 'Form3'
+  ClientHeight = 485
+  ClientWidth = 632
+  OnCreate = FormCreate
+  OnResize = FormResize
+  OnShow = FormShow
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Button1: TButton
+    Left = 548
+    Height = 25
+    Top = 448
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = '&OK'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 8
+    Height = 25
+    Top = 448
+    Width = 75
+    Anchors = [akLeft, akBottom]
+    Caption = '&Cancel'
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object StatusBar1: TStatusBar
+    Left = 8
+    Height = 23
+    Top = 416
+    Width = 615
+    Align = alNone
+    Anchors = [akLeft, akRight, akBottom]
+    Panels = <    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object StringGrid1: TStringGrid
+    Left = 8
+    Height = 408
+    Top = 8
+    Width = 615
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    ColCount = 3
+    Columns = <    
+      item
+        Title.Caption = 'Title'
+      end    
+      item
+        Title.Caption = ''
+      end    
+      item
+        Title.Caption = 'Title'
+      end>
+    FixedCols = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
+    PopupMenu = PopupMenu1
+    RangeSelectMode = rsmMulti
+    TabOrder = 3
+    OnDrawCell = StringGrid1DrawCell
+    OnKeyDown = StringGrid1KeyDown
+  end
+  object ImageList1: TImageList
+    Left = 216
+    Top = 320
+    Bitmap = {
+      4C7A030000001000000010000000950000000000000078DAE5545B0EC02008E3
+      FE9766CBB20F655414D874DB4763A294B43C64666209DA0F0D5AACC285742B47
+      C1956433C71903B516792EEFE81EC454B10E6DD26337B7910F7936FD7A6A62F1
+      473C39EBA1F560B48F69F39331BF19FB93B1BFAB21A2FBA865D0FB533950CFAA
+      19A2C63EF6439FFD003FAAFFCE1ECCE266CCEFDF316B6F57E05A58F40F70EB7F
+      E39FFD81DDDF001F0DAAB8
+    }
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 312
+    Top = 320
+    object MenuItem1: TMenuItem
+      Caption = 'Copy -> [R]'
+      OnClick = MenuItem1Click
+    end
+    object MenuItem3: TMenuItem
+      Caption = 'Do nothing [N]'
+      OnClick = MenuItem3Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Copy <- [L]'
+      OnClick = MenuItem2Click
+    end
+    object MenuItem6: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Open left folder'
+      OnClick = MenuItem7Click
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Open right folder'
+      OnClick = MenuItem9Click
+    end
+    object MenuItem8: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Del left'
+      OnClick = MenuItem4Click
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Del right'
+      OnClick = MenuItem5Click
+    end
+  end
+end

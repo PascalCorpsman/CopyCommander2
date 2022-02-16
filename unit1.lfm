@@ -1,0 +1,397 @@
+object Form1: TForm1
+  Left = 335
+  Height = 599
+  Top = 118
+  Width = 923
+  AllowDropFiles = True
+  Caption = 'Form1'
+  ClientHeight = 599
+  ClientWidth = 923
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnDropFiles = FormDropFiles
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object PairSplitter1: TPairSplitter
+    Left = 50
+    Height = 400
+    Top = 50
+    Width = 400
+    OnResize = PairSplitter1Resize
+    Position = 200
+    object PairSplitterSide1: TPairSplitterSide
+      Cursor = crArrow
+      Left = 0
+      Height = 400
+      Top = 0
+      Width = 200
+      ClientWidth = 200
+      ClientHeight = 400
+      object Panel1: TPanel
+        Left = 0
+        Height = 75
+        Top = 0
+        Width = 200
+        Align = alTop
+        Caption = 'Panel1'
+        ClientHeight = 75
+        ClientWidth = 200
+        TabOrder = 0
+        OnResize = Panel1Resize
+        object Edit1: TEdit
+          Left = 8
+          Height = 25
+          Top = 43
+          Width = 184
+          Anchors = [akLeft, akRight, akBottom]
+          OnKeyDown = Edit2KeyDown
+          OnKeyPress = Edit1KeyPress
+          PopupMenu = PopupMenu3
+          TabOrder = 0
+          Text = 'Edit1'
+        end
+      end
+      object ListView1: TListView
+        Left = 0
+        Height = 302
+        Top = 75
+        Width = 200
+        Align = alClient
+        Columns = <        
+          item
+            Caption = 'Name'
+            MinWidth = 100
+            Width = 100
+          end        
+          item
+            Caption = 'Ext'
+            MinWidth = 50
+          end        
+          item
+            AutoSize = True
+            Caption = 'Size'
+            MinWidth = 50
+          end>
+        HideSelection = False
+        MultiSelect = True
+        PopupMenu = PopupMenu1
+        ReadOnly = True
+        RowSelect = True
+        ScrollBars = ssAutoVertical
+        SmallImages = ImageList1
+        TabOrder = 1
+        ViewStyle = vsReport
+        OnColumnClick = ListView1ColumnClick
+        OnDblClick = ListView1DblClick
+        OnKeyDown = ListView1KeyDown
+        OnResize = ListView1Resize
+      end
+      object StatusBar1: TStatusBar
+        Left = 0
+        Height = 23
+        Top = 377
+        Width = 200
+        Panels = <        
+          item
+            Width = 50
+          end>
+        SimplePanel = False
+      end
+    end
+    object PairSplitterSide2: TPairSplitterSide
+      Cursor = crArrow
+      Left = 205
+      Height = 400
+      Top = 0
+      Width = 195
+      ClientWidth = 195
+      ClientHeight = 400
+      object Panel2: TPanel
+        Left = 0
+        Height = 75
+        Top = 0
+        Width = 195
+        Align = alTop
+        Caption = 'Panel2'
+        ClientHeight = 75
+        ClientWidth = 195
+        TabOrder = 0
+        OnResize = Panel2Resize
+        object Edit2: TEdit
+          Left = 8
+          Height = 25
+          Top = 43
+          Width = 179
+          Anchors = [akLeft, akRight, akBottom]
+          OnKeyDown = Edit2KeyDown
+          OnKeyPress = Edit2KeyPress
+          PopupMenu = PopupMenu4
+          TabOrder = 0
+          Text = 'Edit2'
+        end
+      end
+      object StatusBar2: TStatusBar
+        Left = 0
+        Height = 23
+        Top = 377
+        Width = 195
+        Panels = <        
+          item
+            Width = 50
+          end>
+        SimplePanel = False
+      end
+      object ListView2: TListView
+        Left = 0
+        Height = 302
+        Top = 75
+        Width = 195
+        Align = alClient
+        Columns = <        
+          item
+            Caption = 'Name'
+            MinWidth = 100
+            Width = 100
+          end        
+          item
+            Caption = 'Ext'
+            MinWidth = 50
+          end        
+          item
+            AutoSize = True
+            Caption = 'Size'
+            MinWidth = 50
+          end>
+        HideSelection = False
+        MultiSelect = True
+        PopupMenu = PopupMenu2
+        ReadOnly = True
+        RowSelect = True
+        ScrollBars = ssAutoVertical
+        SmallImages = ImageList1
+        TabOrder = 2
+        ViewStyle = vsReport
+        OnColumnClick = ListView2ColumnClick
+        OnDblClick = ListView2DblClick
+        OnKeyDown = ListView1KeyDown
+        OnResize = ListView2Resize
+      end
+    end
+  end
+  object ImageList1: TImageList
+    Left = 96
+    Top = 8
+    Bitmap = {
+      4C7A110000001000000010000000E20B00000000000078DAED9A7B5054F715C7
+      C94C267F7526E3C47F9A99763AF9C726D1B62371ACD364A69AE92433D6346DD2
+      99CE98AAD5665BD32486C41726EA1A902856680650A82288E28390805422CB43
+      5610505895F7F24679BF6161D96541F8F6777EBB77F9EDDD7BF7A59358CBDE39
+      7377EFFD7DCE39BF737FE7F7BA8B203C324790560B37090A82AFACF8D13AC417
+      1D54E6D77ABDAA28FA45F6546C7BFB5069AED7E197C46B7D157D00BCDEF51C90
+      7D7D00F6F50FC1BE3E00FB7A0F67355EEF1BABC47B6A3FAAED4A6897F43D1041
+      D0E3733C487D1E242612A7D5FAAF436425F14787E8B7C8FA5B0F910F347E0F8B
+      97D741EBE883B58E3E53FE5BE4E57154F24DC9D707E5259F02F5FFFFFDA058F8
+      229E786F1F3DEB33D574F8CAF37E5E41872FBCA7BE57EBC71C402FEBFB17F805
+      9E78BAEEABC8F9873177E0D71CED5CF5EC69EC9672CBC3594987CB3D5FCF8FE8
+      B37789AFF0FBFBB02FF765C1FEE399FBFEE6BF5A0E474444C017F1C4AB8DB9D2
+      87CA3CF9E493F3F33603FBEA4582130C90744B6749072F93406512B071E34604
+      6912D86F03BF260A71E40B71A248BCC1604082261809C14C341A646565C16432
+      C100575EAC97C8D3C7C038624987C6A147C3FC12FDF78997E921F18F77D483C9
+      9A356B10CCAE49FE4B7550E51D1CD93430DF4BEB475DEAAFC6D36F89258E62C7
+      F3D1301F3FB13DC8790D8B51307B761AF61CDCDA80073E58E159CB458ABF92FF
+      FEB47FA5E7EFADFD7BEA0794787FFA01255EDEBEBD89BFB9AF96FF747D6A6A8A
+      8B86B523EA6728A7A46B92A8E91079CA3DFAADC64B67E2245B222FD910792A47
+      67795FA871E4067DA798DACBD038A275F2D27DA94E92487D29DD279F251D22CF
+      F70A1DE392A44FCEF331C00ED97D0A32705ECE8AF591F3E403E9D0721D9E5991
+      5FB76E9D335EBB76ED52FCBE6AD52A559EFA17A5E74471909EA35219D17FBA4F
+      65491258DF713639993F17F241B2ED8D1F1818E062341A9D7A44DBDEF8CECE4E
+      7E5DD221F1FED8A7EBA487EEC9EB1E084F3EC8DB9C52FB7B18FB870BEBF78738
+      0715DF5D043A8715DF5DF8C18B792F3D33B90E5FEC3BCB38E2EDEF1C5A5CD3C9
+      FDF0750E2DF921FAE2EF1C5C3EFF5F58FF3FDC7707E1E1E17850292D2DF55B88
+      A33A487C01FBEE8FF8CAABED3FC8F940EA2DF2FE7E16F847870F54021DB3BFAB
+      F77FDA206DC03688E5FD7E90D66F5F4556145FF4A8B1BEE891B37C1C9544EBAE
+      C323EB9803887AD4ECABF9CCFB7905562BFCA74135562A3E4BE38CF39DA3E08F
+      B798896394F35A90D6657C57D2A3C68AFE4B7306B91E4FECFCBB3CADCBDA5CD4
+      E389757F87EBAEC71BEB4D8FAFAC9A9E07C9C140DE652FECFF2FECFFBB942D2C
+      74DBF7F2C5BEC4F27E88CEFECEFD25565A0BB1DFDFA57DA72E817D1CF7FFFF77
+      D7FDF6BDAEC0D6FD7691F341D2D8283F0B6D4764E5FE8BE3AA53C4B5B38C55DC
+      37E01CE6C539D6BBB3EAF65D79E758E865DF63DEBE30EE0931F0D6F65DED6B1D
+      12E473EE89F5975FF385577C767EF01E73E6315EF73735B7A0E06A2197FC82AB
+      5E85CA191B1A9D7AF4D78A60B158303A326297D1118C8D8DC23436C6DF038D8F
+      938C6362826482EF73E6E517B8F0E3AC5C67C73D747575A2B7A71B7D7DBD5C86
+      8606313C3CC4641823232423B05A2DC8CDCB77F285FA6B9CEF26B6B707F1E733
+      B12B3A11FB122FE1376FADC78E2F6270E24206F3C5EE0FD997F313CCBF3EC61E
+      8E4940527123A232AFE3EF61B1F8E9F255F867460912AFD5232A3E1166B31936
+      9B0DBADC3C17DE6C9EC0C0403F764627E3BD4327F1D7033178677B38DEFCDB4E
+      ACDDF401DED47C82F7C36399EF56CCCCCC204797EBC24F4E4EF2BA1ECFAF467C
+      513397B8ABCC66F62D447C5D82CF520BB133F10AA6A7A771FFFE7D379EE24FF1
+      F9775E158EE91B115B5087E82B771099598603178BB03BA5007B9272B8EDD9D9
+      59373EF4DDCD08D56CC6EE8F421071E2228E649523ECAC0E9F266661EF890CEC
+      8B88C627FF781F7BDFD360E7E60DB892A373E11B6BAAB964A47F837DA17B1012
+      F2095A5A5A70555F888F433E4244D841A4A77D8D2656A6D5588F6FAFE4B8F0C6
+      DB15B89E9F8BE8F8649CCDD0E170E4118CB23674FD4619B6856C47E2852C76EF
+      341A2B6F7391F34DD595A8BF6DC0A5B40BF82A2505DABD9FA2CE68446959190E
+      1ED88FE3FF8A424AE249E82E5FC6CDEBC5BC0D8B3CB1CD355568A9ADC6AD9212
+      1C39F405BA7B7B71AFA303C762BEC4B5FC3CCCCDCDC1CADACED93367313E6176
+      69BF869222D433BFDA59DDEE36187134F210F445452861F6E3BE8CC68DEB45FC
+      D9272625C1343EE19283C4DF61F5BC5D568A36631DBADB5A506D28C787DB3EC4
+      B66D1FA0A82017B7CB6FE2F499143756CC5FCA4DCA2B126ADFA2D0FD31D338BC
+      FD0735907E84BE536E3BF39EE519E5BC94EF24941F943B9393661E07394F1CE5
+      39B5E1D151571D224B79A2C4535E53DF60B73FCF3D15F6035CAAC9E4F9411C09
+      E5AF9CA7FE8958BB4DBB3D8B65128B639EC3F351CFC33235C93912CA21394FB6
+      060707505555C57D247B535356FCE8F852ECCBDD87985B31A8AFAFE776287FDD
+      79338A587B191A1AE271A43E8A727DC98995DC5E785938AF17ED5529F1E46B46
+      4606B75B5B5BCB599265277FC5F95335A73847EF9528FFE53CF5A9C5C5C58ED8
+      9B384BDC4FE25EE05C5167118F4B196BCFCABC95C56F0C7575754E96B8C5513F
+      E4E5AD335634343470FF288FE4BCF45E8CD8B4E102AC28F9237E1CF5733CF597
+      A7787912D247F1577AFE36DB14BF5731D58AA01B2B5166AE81A630143FFB3898
+      B38383831EDBAFF46C5B6D7D78A9ED03BC5CFD2ED6E9DF435D77BDF3794B3E28
+      8DC1C48AF5A63A931043ED81CAC8DB8DC8D33D259684DA86A7B5FCF7B957B8B0
+      FFFF68EEFF2BADDD7DE5D5D6CEBEF26A6BF7EFCABEDADA7D61FFDFFD28D7E722
+      F6C0767CF9D9368F127760073ADB9ADDECC5EEFF18A69E764C0DF7606AA80BD6
+      C10E58FAEFC2D2D786C99E164C7637C1DCD5C0759C3B16E9A683AEDBC606601B
+      EDC3D4C8BC0EABA4A3D7AE83CACDD8AC761DAD4D10F9E9F16194EF5E831B212B
+      5545ACCBF1B01D2EFC8C79549593D6D16521BF64F569C6645723D7E1C24F9A78
+      594F1FBA6FE96DE53AE4FC7DABD92BDF941CCA62D4CF6322E7676D16AF3C1B48
+      F8BCC0661A72E7A7A7384FE3BF28959595484D4DE5637E5B5B1B9E7DF6595454
+      54B0396AAD0B3F777F46916F6A6AC2D6AD5BB178F162F4F7F7F3F6FAC61B6FF0
+      EFF1F1F170F273B3280F7DD525EE03E597795DA3A3A3F1F4D34F735F92D8DC99
+      EAB069D3262C5AB4C8C9DBEB37CBFD989DB1B1FA58F938BA65CB16E8743A6708
+      3AD85C9ED6912B57AE447070B02BEF88D1DCEC7DCCCD4C737DAB57AFC6134F3C
+      C1E74C1B366CE0FE3FF3CC33BC6E62FDE571E63A98B4B7B723323292C78E6220
+      E66D5A5A1AA4FCB1B079AD4C8943C70C3FC7C5C5B9B02FBEF8228FAD94BFC73C
+      E4EFA9235A8CB075654C4C0C979B376FC23A39BF76795CF2DF661AE4F961626B
+      B6A3877B107D7410FBF7F6E3F3CFEE61ACA3D56BFE9BABF3319C71106D8961E8
+      61B9569EAE676DD4841D3B86B067FB5D67EE2AE5BFB5BB0163BA584CF736C37C
+      231DA35987D118F6276C5D5F89D75EEBC11FDEA498B4ABE6FF98EE186C5DF598
+      B87E0E83A743D073F8B7E88D5C87FDAFEEC39225F7F0D6EF3B31CDF2562DFFC7
+      728F61A22203C3E743D1B5FF65B46D5E84AECF57E3D0EF0EA2B1711A8D0D56DE
+      AAD4F2DF36D08ECE780D06E2B7A073D72FD0191A8CCA036BB1E70BDFF33FE99B
+      73B81BBB114D07D7E2C6D13F232C3B1B276AEEFA9CFF876E3620BDDB8C909A41
+      BC5CDC854BBD66744C587DCEFFDDC57538DC3C8AB5653D5894DD06CBF48C5FF9
+      5FD23D84F5F9B55857DA85D5451D308E9AFDCEFF6EE66F54450B93668CB075CE
+      FF42FE2F1CF683D65E5DF7DA71AFB519ED2D8D686D32A2A5A10E4DF5B568A8AD
+      86B1BA127555B75173C7C0D79A727EB0BF071DEDAD3EF1744F64CDE3266EDB57
+      BEFA563986D93395F866633532D32FE29BB4F348BF988AAFCE9FC1C57329B890
+      7A1AE7CF24E35C4A1252534E21F57422CE922427E24E45A9932FB9968FF5EBD7
+      E3EDB7DFE6F9F9FAEBAFF3FFADBEF2CA2BFCFFAF2B56ACC0F2E5CBB164CB122C
+      5BB60C4B972E653A4EFAC5BFF4EE4B78871DCF6D7E2E209EECBFB0E50545FB7D
+      9DAD28D6E7A1E8AA0EFAFC1C5CCDFB1605BA6CE4E75C46DE952CE47E7B09BAEC
+      4BC8C9CE44CEE54C5CF94F068B6BD5420EB0E3BF05B8AF5E
+    }
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 118
+    Top = 231
+    object MenuItem19: TMenuItem
+      Caption = 'Diff viewer [CTRL + S]'
+      OnClick = MenuItem19Click
+    end
+    object MenuItem20: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem5: TMenuItem
+      Caption = 'Reload directory'
+      OnClick = MenuItem5Click
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Copy -> [F5]'
+      OnClick = MenuItem2Click
+    end
+    object MenuItem14: TMenuItem
+      Caption = 'Move -> [F6]'
+      OnClick = MenuItem14Click
+    end
+    object MenuItem15: TMenuItem
+      Caption = 'Make Directory [F7]'
+      OnClick = MenuItem15Click
+    end
+    object MenuItem6: TMenuItem
+      Caption = 'Delete [F8]'
+      OnClick = MenuItem6Click
+    end
+    object MenuItem3: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem12: TMenuItem
+      Caption = 'Swap view left <-> right'
+      OnClick = MenuItem12Click
+    end
+    object MenuItem4: TMenuItem
+      Caption = 'Show Progress window'
+      OnClick = MenuItem4Click
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    Left = 320
+    Top = 231
+    object MenuItem21: TMenuItem
+      Caption = 'Diff viewer [CTRL + S]'
+      OnClick = MenuItem19Click
+    end
+    object MenuItem22: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem7: TMenuItem
+      Caption = 'Reload directory'
+      OnClick = MenuItem7Click
+    end
+    object MenuItem8: TMenuItem
+      Caption = 'Copy <- [F5]'
+      OnClick = MenuItem8Click
+    end
+    object MenuItem16: TMenuItem
+      Caption = 'Move <- [F6]'
+      OnClick = MenuItem16Click
+    end
+    object MenuItem17: TMenuItem
+      Caption = 'Make Directory [F7]'
+      OnClick = MenuItem17Click
+    end
+    object MenuItem9: TMenuItem
+      Caption = 'Delete [F8]'
+      OnClick = MenuItem9Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem13: TMenuItem
+      Caption = 'Swap view left <-> right'
+      OnClick = MenuItem12Click
+    end
+    object MenuItem11: TMenuItem
+      Caption = 'Show Progress window'
+      OnClick = MenuItem4Click
+    end
+  end
+  object PopupMenu3: TPopupMenu
+    Left = 106
+    Top = 104
+    object MenuItem1: TMenuItem
+      Caption = 'Add actual folder as shortcut button'
+      OnClick = MenuItem1Click
+    end
+  end
+  object PopupMenu4: TPopupMenu
+    Left = 321
+    Top = 104
+    object MenuItem18: TMenuItem
+      Caption = 'Add actual folder as shortcut button'
+      OnClick = MenuItem18Click
+    end
+  end
+  object ApplicationProperties1: TApplicationProperties
+    OnIdle = ApplicationProperties1Idle
+    Left = 232
+    Top = 8
+  end
+  object PopupMenu5: TPopupMenu
+    Left = 320
+    Top = 8
+    object MenuItem23: TMenuItem
+      Caption = 'Delete entry'
+      OnClick = MenuItem23Click
+    end
+  end
+end

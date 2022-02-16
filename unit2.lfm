@@ -1,0 +1,174 @@
+object Form2: TForm2
+  Left = 393
+  Height = 480
+  Top = 191
+  Width = 640
+  Caption = 'Form2'
+  ClientHeight = 480
+  ClientWidth = 640
+  OnClose = FormClose
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 200
+    Top = 0
+    Width = 640
+    Align = alTop
+    Caption = 'Panel1'
+    ClientHeight = 200
+    ClientWidth = 640
+    TabOrder = 0
+    object Label1: TLabel
+      Left = 16
+      Height = 16
+      Top = 8
+      Width = 46
+      Caption = 'Aktual :'
+    end
+    object Label2: TLabel
+      Left = 72
+      Height = 16
+      Top = 8
+      Width = 41
+      Caption = 'Label2'
+    end
+    object ProgressBar1: TProgressBar
+      Left = 16
+      Height = 20
+      Top = 32
+      Width = 610
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 0
+    end
+    object Label3: TLabel
+      Left = 16
+      Height = 16
+      Top = 55
+      Width = 43
+      Caption = 'Speed :'
+    end
+    object Label4: TLabel
+      Left = 72
+      Height = 16
+      Top = 55
+      Width = 41
+      Caption = 'Label4'
+    end
+    object Chart1: TChart
+      Left = 2
+      Height = 111
+      Top = 72
+      Width = 638
+      AxisList = <      
+        item
+          Marks.LabelBrush.Style = bsClear
+          Minors = <>
+          Title.LabelFont.Orientation = 900
+          Title.LabelBrush.Style = bsClear
+          OnMarkToText = Chart1AxisList0MarkToText
+        end      
+        item
+          Alignment = calBottom
+          Marks.LabelBrush.Style = bsClear
+          Minors = <>
+          Title.LabelBrush.Style = bsClear
+          OnMarkToText = Chart1AxisList1MarkToText
+        end>
+      Foot.Brush.Color = clForm
+      Title.Brush.Color = clForm
+      Title.Text.Strings = (
+        'TAChart'
+      )
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      object Chart1LineSeries1: TLineSeries
+      end
+      object Chart1LineSeries2: TLineSeries
+      end
+    end
+    object Label5: TLabel
+      Left = 16
+      Height = 16
+      Top = 184
+      Width = 41
+      Anchors = [akLeft, akBottom]
+      Caption = 'Label5'
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Height = 60
+    Top = 420
+    Width = 640
+    Align = alBottom
+    Caption = 'Panel2'
+    ClientHeight = 60
+    ClientWidth = 640
+    TabOrder = 1
+    object Button1: TButton
+      Left = 16
+      Height = 25
+      Top = 24
+      Width = 121
+      Caption = 'Delete Job'
+      OnClick = Button1Click
+      TabOrder = 0
+    end
+    object Button2: TButton
+      Left = 505
+      Height = 25
+      Top = 24
+      Width = 121
+      Anchors = [akTop, akRight]
+      Caption = 'Cancel all'
+      OnClick = Button2Click
+      TabOrder = 1
+    end
+    object Button3: TButton
+      Left = 152
+      Height = 25
+      Top = 24
+      Width = 340
+      Anchors = [akTop, akLeft, akRight]
+      Caption = 'Pause'
+      OnClick = Button3Click
+      TabOrder = 2
+    end
+    object CheckBox1: TCheckBox
+      Left = 1
+      Height = 22
+      Top = 0
+      Width = 87
+      Caption = 'keep open'
+      TabOrder = 3
+    end
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 397
+    Width = 640
+    Panels = <    
+      item
+        Width = 50
+      end>
+    SimplePanel = False
+  end
+  object Splitter1: TSplitter
+    Cursor = crVSplit
+    Left = 0
+    Height = 5
+    Top = 200
+    Width = 640
+    Align = alTop
+    ResizeAnchor = akTop
+  end
+  object TreeView1: TTreeView
+    Left = 8
+    Height = 168
+    Top = 208
+    Width = 193
+    TabOrder = 4
+  end
+end

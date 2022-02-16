@@ -1,0 +1,58 @@
+object Form5: TForm5
+  Left = 323
+  Height = 116
+  Top = 130
+  Width = 408
+  Caption = 'Form5'
+  ClientHeight = 116
+  ClientWidth = 408
+  OnCreate = FormCreate
+  Position = poScreenCenter
+  LCLVersion = '2.3.0.0'
+  object Button1: TButton
+    Left = 8
+    Height = 25
+    Top = 80
+    Width = 120
+    Anchors = [akLeft, akBottom]
+    Caption = '&Replace'
+    OnClick = Button1Click
+    TabOrder = 0
+  end
+  object Label1: TLabel
+    Left = 16
+    Height = 16
+    Top = 0
+    Width = 41
+    Caption = 'Label1'
+  end
+  object Button2: TButton
+    Left = 144
+    Height = 25
+    Top = 80
+    Width = 120
+    Anchors = [akLeft, akBottom]
+    Caption = '&Skip file'
+    OnClick = Button2Click
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 280
+    Height = 25
+    Top = 80
+    Width = 120
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Cancel all'
+    OnClick = Button3Click
+    TabOrder = 2
+  end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 56
+    Width = 94
+    Anchors = [akLeft, akBottom]
+    Caption = 'Apply to all'
+    TabOrder = 3
+  end
+end
