@@ -150,66 +150,104 @@ Uses LazFileUtils, LCLType, math
 Const
   ImageIndexFolder = 0;
   ImageIndexBack = 1;
-  ImageIndexUnknownFile = 2;
-  ImageIndexTextfile = 3;
-  ImageIndexMovieFile = 4; // .mp4, ..
-  ImageIndexBitmapFile = 5; //.bmp, ..
-  ImageIndexLibFile = 6; // .dll, .so, .dylib
-  ImageIndexExecutable = 7; // .exe
-  ImageIndexHelpfile = 8; // .hlp ?
-  ImageIndexConfigFile = 9; // .ini, .cfg
-  ImageIndexJPGFile = 10; // .jpg
-  ImageIndexArchiveFile = 11; // .zip, .rar, ..
-  ImageIndexSoundFile = 12; // .wav,
-  ImageIndexBatchFile = 13; // .sh, .bat
-  ImageIndexFormFile = 14; // .lfm, .dfm
-  ImageindexPasFile = 15; // .pas
-  ImegeIndexHDD = 16; // C:\, ...
+  ImageIndexHDD = 2; // C:\, ...
+  ImageIndexUnknownFile = 3;
+
+  ImageIndexTextfile = 4;
+  ImageIndexMovieFile = 5; // .mp4, ..
+  ImageIndexBitmapFile = 6; //.bmp, ..
+  ImageIndexLibFile = 7; // .dll, .so, .dylib
+  ImageIndexExecutable = 8; // .exe
+  ImageIndexHelpfile = 9; // .hlp ?
+  ImageIndexConfigFile = 10; // .ini, .cfg
+  ImageIndexJPGFile = 11; // .jpg
+  ImageIndexArchiveFile = 12; // .zip, .rar, ..
+  ImageIndexSoundFile = 13; // .wav,
+  ImageIndexBatchFile = 14; // .sh, .bat
+  ImageIndexFormFile = 15; // .lfm, .dfm
+  ImageindexPasFile = 16; // .pas
+  ImageIndexHTMLfile= 17;
+  ImageIndexPDFfile= 18;
+
+
+  extra='.';  // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
+  {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
+   darauf achten, dass die Indizes stimmen - hier von 3..15}
+  extlist: array [4..18] of string = ('.txt.log.csv.',              {4}
+                                      '.avi.mov.mp4.mkv.',
+                                      '.bmp.',
+                                      '.dll.so.',
+                                      '..exe.com.',
+                                      '.hlp.',
+                                      '.ini.cfg.conf.',             {10}
+                                      '.jpg.jpeg.png.',
+                                      '.rar.zip.tar.gz.7z.',
+                                      '.mp3.wav.flac.ape.',
+                                      '.sh.bat.cmd.',
+                                      '.lfm.dfm.',
+                                      '.pas.lpr.dpr.',
+                                      '.htm.htlm.css.xml.',
+                                      '.pdf.');                     {18}
 
   (*
    * Ermittelt den ImageIndex zu einer Gegebenen Dateiendung (Heuristisch)
    *)
 
-Function FileTypeToIndex(ext: String): Integer;
-Begin
-  result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Graphik.
-  ext := lowercase(ext);
-  // Text Dateien
-  If (ext = 'txt') Or (ext = 'log') Or (ext = 'csv') Or (ext = 'md') Then
-    result := ImageIndexTextfile;
-  // Filme
-  If (ext = 'avi') Or (ext = 'mov') Or (ext = 'mp4') Or (ext = 'mkv') Then
-    result := ImageIndexMovieFile;
-  // Bmp
-  If (ext = 'bmp') Then result := ImageIndexBitmapFile;
-  // Dll
-  If (ext = 'so') Or (ext = 'dll') Then
-    result := ImageIndexLibFile;
-  // Anwendungen
-  If (ext = '') Or (ext = 'exe') Or (ext = 'com') Then
-    result := ImageIndexExecutable;
-  // Hilfe
-  If (ext = 'hlp') Then
-    result := ImageIndexHelpfile;
-  // Ini
-  If (ext = 'ini') Or (ext = 'cfg') Then
-    result := ImageIndexConfigFile;
-  // jpg
-  If (ext = 'jpg') Or (ext = 'jpeg') Or (ext = 'png') Then
-    result := ImageIndexJPGFile;
-  // Archive
-  If (ext = 'rar') Or (ext = 'zip') Or (ext = 'tar') Or (ext = 'gz') Then
-    result := ImageIndexArchiveFile;
-  // mp3
-  If (ext = 'mp3') Or (ext = 'wav') Then
-    result := ImageIndexSoundFile;
-  If (ext = 'sh') Or (ext = 'bat') Or (ext = 'cmd') Then
-    result := ImageIndexBatchFile;
-  If (ext = 'lfm') Or (ext = 'dfm') Then
-    result := ImageIndexFormFile;
-  If (ext = 'pas') Or (ext = 'lpr') Or (ext = 'dpr') Then
-    result := ImageindexPasFile;
-End;
+(*   Function FileTypeToIndex(ext: String): Integer;
+   Begin
+     result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Graphik.
+     ext := lowercase(ext);
+     // Text Dateien
+     If (ext = 'txt') Or (ext = 'log') Or (ext = 'csv') Or (ext = 'md') Then
+       result := ImageIndexTextfile;
+     // Filme
+     If (ext = 'avi') Or (ext = 'mov') Or (ext = 'mp4') Or (ext = 'mkv') Then
+       result := ImageIndexMovieFile;
+     // Bmp
+     If (ext = 'bmp') Then result := ImageIndexBitmapFile;
+     // Dll
+     If (ext = 'so') Or (ext = 'dll') Then
+       result := ImageIndexLibFile;
+     // Anwendungen
+     If (ext = '') Or (ext = 'exe') Or (ext = 'com') Then
+       result := ImageIndexExecutable;
+     // Hilfe
+     If (ext = 'hlp') Then
+       result := ImageIndexHelpfile;
+     // Ini
+     If (ext = 'ini') Or (ext = 'cfg') Then
+       result := ImageIndexConfigFile;
+     // jpg
+     If (ext = 'jpg') Or (ext = 'jpeg') Or (ext = 'png') Then
+       result := ImageIndexJPGFile;
+     // Archive
+     If (ext = 'rar') Or (ext = 'zip') Or (ext = 'tar') Or (ext = 'gz') Then
+       result := ImageIndexArchiveFile;
+     // mp3
+     If (ext = 'mp3') Or (ext = 'wav') Then
+       result := ImageIndexSoundFile;
+     If (ext = 'sh') Or (ext = 'bat') Or (ext = 'cmd') Then
+       result := ImageIndexBatchFile;
+     If (ext = 'lfm') Or (ext = 'dfm') Then
+       result := ImageIndexFormFile;
+     If (ext = 'pas') Or (ext = 'lpr') Or (ext = 'dpr') Then
+       result := ImageindexPasFile;
+   End;   *)
+
+   Function FileTypeToIndex(ext: String): Integer;
+   var
+     i: integer;
+
+   Begin
+     result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Grafik.
+     ext := lowercase(ext);
+     for i:=low(extlist) to high(extlist) do begin
+       if pos(extra+ext+extra, extlist[i])>0 then begin
+         result:=i;
+         break;
+       end;
+     end;
+   End;
 
 
 (*
@@ -1514,7 +1552,7 @@ Begin
     For i := 0 To sl.Count - 1 Do Begin
       item := view.listview.Items.Add;
       item.Caption := sl[i];
-      item.ImageIndex := ImegeIndexHDD;
+      item.ImageIndex := ImageIndexHDD;
       item.SubItems.add('');
       item.SubItems.add('<DRIVE>');
       inc(DirectoryCount);
