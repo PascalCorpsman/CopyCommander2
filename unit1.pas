@@ -425,12 +425,14 @@ Var
   ds, s: String;
 Begin
   (*
-   * Historie: 0.01 = Initialversion
-   *           0.02 = Auswerten Paramstr beim Start (besseres Fehlerhandling)
-   *                  Windows: show Drive Letters as top Level
-   *                  Fix: ListViewSelectItemIndex
-   *                  Fix: Linux: F7 dialog was doubled if entered via keyboard.
-   *           0.03 = Fix: Anchors of Progress Label
+   * Historie:
+   * (15.02.2022) 0.01 = Initialversion
+   * (17.02.2022) 0.02 = Auswerten Paramstr beim Start (besseres Fehlerhandling)
+   *                     Windows: show Drive Letters as top Level
+   *                     Fix: ListViewSelectItemIndex
+   *                     Fix: Linux: F7 dialog was doubled if entered via keyboard.
+   * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
+   *                     Refactor file ext icons ( Pull request by H. Elsner)
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
    *)

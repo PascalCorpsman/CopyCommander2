@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 982
+  Left = 230
   Height = 599
-  Top = 123
+  Top = 130
   Width = 923
   AllowDropFiles = True
   Caption = 'Form1'
@@ -41,8 +41,8 @@ object Form1: TForm1
         OnResize = Panel1Resize
         object Edit1: TEdit
           Left = 8
-          Height = 23
-          Top = 45
+          Height = 25
+          Top = 43
           Width = 184
           Anchors = [akLeft, akRight, akBottom]
           OnKeyDown = Edit2KeyDown
@@ -72,7 +72,6 @@ object Form1: TForm1
             AutoSize = True
             Caption = 'Size'
             MinWidth = 50
-            Width = 35
           end>
         HideSelection = False
         MultiSelect = True
@@ -121,8 +120,8 @@ object Form1: TForm1
         OnResize = Panel2Resize
         object Edit2: TEdit
           Left = 8
-          Height = 23
-          Top = 45
+          Height = 25
+          Top = 43
           Width = 179
           Anchors = [akLeft, akRight, akBottom]
           OnKeyDown = Edit2KeyDown
@@ -163,7 +162,6 @@ object Form1: TForm1
             AutoSize = True
             Caption = 'Size'
             MinWidth = 50
-            Width = 35
           end>
         HideSelection = False
         MultiSelect = True
