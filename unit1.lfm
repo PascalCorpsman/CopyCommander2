@@ -433,5 +433,9 @@ object Form1: TForm1
       Caption = 'Copy entry'
       OnClick = mnCopyBtnClick
     end
+    object mnMoveShortcut: TMenuItem
+      Caption = 'Move entry'
+      OnClick = mnMoveShortcutClick
+    end
   end
 end

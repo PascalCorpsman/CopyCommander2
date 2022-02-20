@@ -39,6 +39,7 @@ Type
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
+    mnMoveShortcut: TMenuItem;
     mnCreateShortcutL: TMenuItem;
     MenuItem10: TMenuItem;
     MenuItem11: TMenuItem;
@@ -111,6 +112,7 @@ Type
     Procedure MenuItem7Click(Sender: TObject);
     Procedure MenuItem8Click(Sender: TObject);
     Procedure MenuItem9Click(Sender: TObject);
+    procedure mnMoveShortcutClick(Sender: TObject);
     Procedure PairSplitter1Resize(Sender: TObject);
     Procedure Panel1Resize(Sender: TObject);
     Procedure Panel2Resize(Sender: TObject);
@@ -133,6 +135,8 @@ Type
       Var Handled: Boolean);
     Procedure CreateShortcutR;    // Create schortcut button on right panel
     Procedure CreateShortCutL;    // Create shortcut button on left panel
+    Procedure CopyShortcut;
+    Procedure DeleteShortcut;
 
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
@@ -398,6 +402,7 @@ Begin
    *                     Refactor file ext icons ( Pull request by H. Elsner)
    * (20.02.2022) 0.04 = Shortcut buttons seperated for left and right panels
                          Added menu item to copy shortcut button to the other panel
+                         Added menu item to move shortcut button to the other panel
                          Added double click to pathname-edits to create shortcuts
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
@@ -1017,6 +1022,11 @@ End;
 
 {2022-02-20 Added: Copy shortcut button to the other side [h-elsner]}
 procedure TForm1.mnCopyBtnClick(Sender: TObject);
+begin
+  CopyShortcut;
+end;
+
+Procedure TForm1.CopyShortcut;
 Var
   cnt: Integer;
   psn: String;
@@ -1126,6 +1136,12 @@ Begin
   key := VK_F8;
   ListView1KeyDown(ListView2, key, []);
 End;
+
+procedure TForm1.mnMoveShortcutClick(Sender: TObject);  // Move shortcut button to the other panel
+begin
+  CopyShortcut;
+  DeleteShortcut;
+end;
 
 Procedure TForm1.PairSplitter1Resize(Sender: TObject);
 Begin
@@ -1415,6 +1431,11 @@ End;
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
 Procedure TForm1.mnDeleteShortcutClick(Sender: TObject);
+begin
+  DeleteShortcut;
+end;
+
+Procedure TForm1.DeleteShortcut;
 Var
   cnt, i: Integer;
 Begin
