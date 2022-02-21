@@ -404,13 +404,14 @@ Begin
    *                     Fix: Linux: F7 dialog was doubled if entered via keyboard.
    * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
    *                     Refactor file ext icons ( Pull request by H. Elsner)
-   *                     Shortcut buttons seperated for left and right panels
+   * (21.02.2022) 0.04 = Shortcut buttons seperated for left and right panels
    *                     Added menu item to copy shortcut button to the other panel
    *                     Added menu item to move shortcut button to the other panel
    *                     Added double click to pathname-edits to create shortcuts
-   * (21-02.2022)        Added menu Open in file manager
-                         Added app icon
-
+   *                     Added menu Open in file manager
+   *                     Added app icon
+   *              0.05 =
+   *
    *******************************************************
    *  Silk icon set 1.3 used
    *  ----------------------
@@ -425,7 +426,7 @@ Begin
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
    *)
-  Caption := 'Copycommander2 ver. 0.04';
+  Caption := 'Copycommander2 ver. 0.05';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt

@@ -20,7 +20,6 @@ Type
   TForm3 = Class(TForm)
     Button1: TButton;
     Button2: TButton;
-    ImageList1: TImageList;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
@@ -69,9 +68,9 @@ Implementation
 Uses LazFileUtils, ucopycommander, Unit1, lclintf, LCLType;
 
 Const
-  IndexDoNothing = 0;
-  IndexLeftToRight = 1;
-  IndexRightToLeft = 2;
+  IndexDoNothing = 7;
+  IndexLeftToRight = 6;
+  IndexRightToLeft = 3;
 
 Type
   TccFile = Record
@@ -241,13 +240,13 @@ Begin
     StringGrid1.Canvas.Rectangle(aRect.Left - 1, aRect.Top - 1, aRect.Right, aRect.Bottom);
     Case StringGrid1.Cells[aCol, aRow] Of
       chr(IndexDoNothing + ord('0')): Begin
-          ImageList1.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexDoNothing);
+          form1.AppIcons.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexDoNothing);
         End;
       chr(IndexLeftToRight + ord('0')): Begin
-          ImageList1.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexLeftToRight);
+          form1.AppIcons.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexLeftToRight);
         End;
       chr(IndexRightToLeft + ord('0')): Begin
-          ImageList1.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexRightToLeft);
+          form1.AppIcons.Draw(StringGrid1.Canvas, arect.Left + 2, aRect.Top + 2, IndexRightToLeft);
         End;
     End;
   End;

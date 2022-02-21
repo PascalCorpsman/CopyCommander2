@@ -69,31 +69,23 @@ object Form3: TForm3
     OnDrawCell = StringGrid1DrawCell
     OnKeyDown = StringGrid1KeyDown
   end
-  object ImageList1: TImageList
-    Left = 216
-    Top = 320
-    Bitmap = {
-      4C7A030000001000000010000000950000000000000078DAE5545B0EC02008E3
-      FE9766CBB20F655414D874DB4763A294B43C64666209DA0F0D5AACC285742B47
-      C1956433C71903B516792EEFE81EC454B10E6DD26337B7910F7936FD7A6A62F1
-      473C39EBA1F560B48F69F39331BF19FB93B1BFAB21A2FBA865D0FB533950CFAA
-      19A2C63EF6439FFD003FAAFFCE1ECCE266CCEFDF316B6F57E05A58F40F70EB7F
-      E39FFD81DDDF001F0DAAB8
-    }
-  end
   object PopupMenu1: TPopupMenu
+    Images = Form1.AppIcons
     Left = 312
     Top = 320
     object MenuItem1: TMenuItem
       Caption = 'Copy -> [R]'
+      ImageIndex = 6
       OnClick = MenuItem1Click
     end
     object MenuItem3: TMenuItem
       Caption = 'Do nothing [N]'
+      ImageIndex = 7
       OnClick = MenuItem3Click
     end
     object MenuItem2: TMenuItem
       Caption = 'Copy <- [L]'
+      ImageIndex = 3
       OnClick = MenuItem2Click
     end
     object MenuItem6: TMenuItem
@@ -101,10 +93,12 @@ object Form3: TForm3
     end
     object MenuItem7: TMenuItem
       Caption = 'Open left folder'
+      ImageIndex = 13
       OnClick = MenuItem7Click
     end
     object MenuItem9: TMenuItem
       Caption = 'Open right folder'
+      ImageIndex = 14
       OnClick = MenuItem9Click
     end
     object MenuItem8: TMenuItem
