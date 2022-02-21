@@ -889,7 +889,6 @@ Begin
   // Navigation mittels Return
   If key = VK_RETURN Then Begin
     // Ein Verzeichnis wird geöffnet
-    Screen.Cursor:=crHourGlass;
     If aListview.Selected.SubItems[1] = '<DIR>' Then Begin
       // Ein Ordner Zurück
       If aListview.Selected.caption = '[..]' Then Begin
@@ -940,7 +939,6 @@ Begin
 {$IFDEF Windows}
       End;
 {$ENDIF}
-      Screen.Cursor:=crDefault;
     End;
   End;
   // F5 = Copy

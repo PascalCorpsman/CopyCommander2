@@ -1,7 +1,7 @@
 object Form4: TForm4
-  Left = 380
+  Left = 463
   Height = 522
-  Top = 127
+  Top = 328
   Width = 907
   Caption = 'Form4'
   ClientHeight = 522
@@ -32,10 +32,12 @@ object Form4: TForm4
     TopIndex = -1
   end
   object PopupMenu1: TPopupMenu
+    Images = Form1.AppIcons
     Left = 133
     Top = 92
     object MenuItem1: TMenuItem
       Caption = 'Re add to queue'
+      ImageIndex = 15
       OnClick = MenuItem1Click
     end
   end

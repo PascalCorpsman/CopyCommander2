@@ -106,10 +106,12 @@ object Form3: TForm3
     end
     object MenuItem4: TMenuItem
       Caption = 'Del left'
+      ImageIndex = 16
       OnClick = MenuItem4Click
     end
     object MenuItem5: TMenuItem
       Caption = 'Del right'
+      ImageIndex = 17
       OnClick = MenuItem5Click
     end
   end
