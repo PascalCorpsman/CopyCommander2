@@ -6,7 +6,7 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types;
+  PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types, lclintf;
 
 Type
 
@@ -33,12 +33,15 @@ Type
   { TForm1 }
 
   TForm1 = Class(TForm)
+    AppIcons: TImageList;
     ApplicationProperties1: TApplicationProperties;
     Edit1: TEdit;
     Edit2: TEdit;
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
+    mnFileManagerR: TMenuItem;
+    mnFilemanagerL: TMenuItem;
     mnMoveShortcut: TMenuItem;
     mnCreateShortcutL: TMenuItem;
     MenuItem10: TMenuItem;
@@ -112,6 +115,8 @@ Type
     Procedure MenuItem7Click(Sender: TObject);
     Procedure MenuItem8Click(Sender: TObject);
     Procedure MenuItem9Click(Sender: TObject);
+    procedure mnFilemanagerLClick(Sender: TObject);
+    procedure mnFileManagerRClick(Sender: TObject);
     procedure mnMoveShortcutClick(Sender: TObject);
     Procedure PairSplitter1Resize(Sender: TObject);
     Procedure Panel1Resize(Sender: TObject);
@@ -181,7 +186,7 @@ Const
   extra='.';  // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
   {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
    darauf achten, dass die Indizes stimmen - hier von 3..15}
-  extlist: array [4..18] of string = ('.txt.log.csv.',              {4}
+  extlist: array [4..20] of string = ('.txt.log.csv.',              {4}
                                       '.avi.mov.mp4.mkv.webm.wmv.mpeg.ts.dv.',
                                       '.bmp.tiff.tif.',
                                       '.dll.so.',
@@ -194,9 +199,10 @@ Const
                                       '.sh.bat.cmd.',
                                       '.lfm.dfm.',
                                       '.pas.lpr.dpr.',
-                                      '.htm.htlm.css.xml.',
-                                      '.pdf.odt.');                {18 Documents}
-
+                                      '.htm.html.',
+                                      '.pdf.odt.',                 {18 Documents}
+                                      '.xml.',
+                                      '.css.');
   (*
    * Ermittelt den ImageIndex zu einer Gegebenen Dateiendung (Heuristisch)
    *)
@@ -401,9 +407,23 @@ Begin
    * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
    *                     Refactor file ext icons ( Pull request by H. Elsner)
    * (20.02.2022) 0.04 = Shortcut buttons seperated for left and right panels
-                         Added menu item to copy shortcut button to the other panel
-                         Added menu item to move shortcut button to the other panel
-                         Added double click to pathname-edits to create shortcuts
+   *                     Added menu item to copy shortcut button to the other panel
+   *                     Added menu item to move shortcut button to the other panel
+   *                     Added double click to pathname-edits to create shortcuts
+   * (21-02.2022)        Added menu Open in file manager
+                         Added app icon
+
+   *******************************************************
+   *  Silk icon set 1.3 used
+   *  ----------------------
+   *  Mark James
+   *  http://www.famfamfam.com/lab/icons/silk/
+   *******************************************************
+   *  This work is licensed under a
+   *  Creative Commons Attribution 2.5 License.
+   *  [ http://creativecommons.org/licenses/by/2.5/ ]
+   *******************************************************
+
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
    *)
@@ -1136,6 +1156,18 @@ Begin
   key := VK_F8;
   ListView1KeyDown(ListView2, key, []);
 End;
+
+procedure TForm1.mnFilemanagerLClick(Sender: TObject);
+begin
+  if Edit1.Text<>'' then
+    OpenDocument(ExtractFilePath(Edit1.Text));
+end;
+
+procedure TForm1.mnFileManagerRClick(Sender: TObject);
+begin
+  if Edit2.Text<>'' then
+    OpenDocument(ExtractFilePath(Edit2.Text));
+end;
 
 procedure TForm1.mnMoveShortcutClick(Sender: TObject);  // Move shortcut button to the other panel
 begin
