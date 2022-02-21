@@ -404,12 +404,12 @@ Begin
    *                     Fix: Linux: F7 dialog was doubled if entered via keyboard.
    * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
    *                     Refactor file ext icons ( Pull request by H. Elsner)
-   * (21.02.2022) 0.04 = Shortcut buttons seperated for left and right panels
-   *                     Added menu item to copy shortcut button to the other panel
-   *                     Added menu item to move shortcut button to the other panel
-   *                     Added double click to pathname-edits to create shortcuts
-   *                     Added menu Open in file manager
-   *                     Added app icon
+   * (21.02.2022) 0.04 = Shortcut buttons seperated for left and right panels ( Pull request by H. Elsner)
+   *                     Added menu item to copy shortcut button to the other panel ( Pull request by H. Elsner)
+   *                     Added menu item to move shortcut button to the other panel ( Pull request by H. Elsner)
+   *                     Added double click to pathname-edits to create shortcuts ( Pull request by H. Elsner)
+   *                     Added menu Open in file manager ( Pull request by H. Elsner)
+   *                     Added app icon ( Pull request by H. Elsner)
    *              0.05 =
    *
    *******************************************************
