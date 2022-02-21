@@ -394,8 +394,6 @@ End;
 { TForm1 }
 
 Procedure TForm1.FormCreate(Sender: TObject);
-Var
-  ds, s: String;
 Begin
   (*
    * Historie:
@@ -406,7 +404,7 @@ Begin
    *                     Fix: Linux: F7 dialog was doubled if entered via keyboard.
    * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
    *                     Refactor file ext icons ( Pull request by H. Elsner)
-   * (20.02.2022) 0.04 = Shortcut buttons seperated for left and right panels
+   *                     Shortcut buttons seperated for left and right panels
    *                     Added menu item to copy shortcut button to the other panel
    *                     Added menu item to move shortcut button to the other panel
    *                     Added double click to pathname-edits to create shortcuts
@@ -434,6 +432,8 @@ Begin
    * Noch Offen:
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
+  Width:=finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);
+  Height:=finiFile.ReadInteger(iniGeneral, iniAppHeight, Height);
   fShortCutButtons := Nil;
   LoadShortCutButtons;
 
@@ -448,35 +448,6 @@ Begin
   fRightView.ListView := ListView2;
   fRightView.Edit := Edit2;
   fRightView.StatusBar := StatusBar2;
-  // Laden der Letzten Verzeichnisse
-  ds := GetUserDir;
-  If ParamCount >= 1 Then Begin
-    s := ParamStr(1)
-  End
-  Else Begin
-    s := finiFile.ReadString(iniLeft, iniLastDir, ds);
-  End;
-  If Not DirectoryExists(s) Then Begin
-    s := ds;
-  End;
-  LoadDir(s, fLeftView);
-  If ParamCount > 1 Then Begin
-    s := ParamStr(2)
-  End
-  Else
-    s := finiFile.ReadString(iniRight, iniLastDir, ds);
-  If Not DirectoryExists(s) Then Begin
-    s := ds;
-  End;
-  LoadDir(s, fRightView);
-  fWorkThread := TWorkThread.create(true);
-  fWorkThread.FreeOnTerminate := false;
-  fWorkThread.OnByteTransfereStatistic := @OnByteTransfereStatistic;
-  fWorkThread.OnStartJob := @OnStartJob;
-  fWorkThread.OnFinishJob := @OnFinishJob;
-  fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
-  fWorkThread.OnAddSubJobs := @OnAddSubJobs;
-  fWorkThread.Start;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -601,9 +572,38 @@ Begin
 End;
 
 procedure TForm1.FormActivate(Sender: TObject);
+Var
+  ds, s: String;
 begin
-  Width:=finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);
-  Height:=finiFile.ReadInteger(iniGeneral, iniAppHeight, Height);
+  // Laden der Letzten Verzeichnisse
+  ds := GetUserDir;
+  If ParamCount >= 1 Then Begin
+    s := ParamStr(1)
+  End
+  Else Begin
+    s := finiFile.ReadString(iniLeft, iniLastDir, ds);
+  End;
+  If Not DirectoryExists(s) Then Begin
+    s := ds;
+  End;
+  LoadDir(s, fLeftView);
+  If ParamCount > 1 Then Begin
+    s := ParamStr(2)
+  End
+  Else
+    s := finiFile.ReadString(iniRight, iniLastDir, ds);
+  If Not DirectoryExists(s) Then Begin
+    s := ds;
+  End;
+  LoadDir(s, fRightView);
+  fWorkThread := TWorkThread.create(true);
+  fWorkThread.FreeOnTerminate := false;
+  fWorkThread.OnByteTransfereStatistic := @OnByteTransfereStatistic;
+  fWorkThread.OnStartJob := @OnStartJob;
+  fWorkThread.OnFinishJob := @OnFinishJob;
+  fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
+  fWorkThread.OnAddSubJobs := @OnAddSubJobs;
+  fWorkThread.Start;
 end;
 
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
