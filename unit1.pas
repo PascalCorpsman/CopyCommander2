@@ -126,6 +126,7 @@ Type
     fLeftView, fRightView: TView;
     finiFile: TIniFile;
     fButtonPopupTag: Integer;
+    startup: boolean;
     Procedure DiffViewer();
     Procedure CreateAndAddJob(Item: TListItem; JobType: TJobSubType; SourceDir,
       DestDir: String);
@@ -410,6 +411,8 @@ Begin
    *                     Added double click to pathname-edits to create shortcuts ( Pull request by H. Elsner)
    *                     Added menu Open in file manager ( Pull request by H. Elsner)
    *                     Added app icon ( Pull request by H. Elsner)
+   *                     Fix: Roll back OnActivate procedure
+   *                     Fix: Open file manager was incorrectly called in LINUX environmat
    *              0.05 =
    *
    *******************************************************
@@ -425,6 +428,7 @@ Begin
 
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
+                 - File name for some files in home directory are not visible in LINUX Mint
    *)
   Caption := 'Copycommander2 ver. 0.05';
   (*
@@ -449,6 +453,7 @@ Begin
   fRightView.ListView := ListView2;
   fRightView.Edit := Edit2;
   fRightView.StatusBar := StatusBar2;
+  startup:=true;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -577,34 +582,38 @@ Var
   ds, s: String;
 begin
   // Laden der Letzten Verzeichnisse
-  ds := GetUserDir;
-  If ParamCount >= 1 Then Begin
-    s := ParamStr(1)
-  End
-  Else Begin
-    s := finiFile.ReadString(iniLeft, iniLastDir, ds);
-  End;
-  If Not DirectoryExists(s) Then Begin
-    s := ds;
-  End;
-  LoadDir(s, fLeftView);
-  If ParamCount > 1 Then Begin
-    s := ParamStr(2)
-  End
-  Else
-    s := finiFile.ReadString(iniRight, iniLastDir, ds);
-  If Not DirectoryExists(s) Then Begin
-    s := ds;
-  End;
-  LoadDir(s, fRightView);
-  fWorkThread := TWorkThread.create(true);
-  fWorkThread.FreeOnTerminate := false;
-  fWorkThread.OnByteTransfereStatistic := @OnByteTransfereStatistic;
-  fWorkThread.OnStartJob := @OnStartJob;
-  fWorkThread.OnFinishJob := @OnFinishJob;
-  fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
-  fWorkThread.OnAddSubJobs := @OnAddSubJobs;
-  fWorkThread.Start;
+  if startup then begin
+    startup:=false;    // do it only once
+    // Laden der Letzten Verzeichnisse
+    ds := GetUserDir;
+    If ParamCount >= 1 Then Begin
+      s := ParamStr(1)
+    End
+    Else Begin
+      s := finiFile.ReadString(iniLeft, iniLastDir, ds);
+    End;
+    If Not DirectoryExists(s) Then Begin
+      s := ds;
+    End;
+    LoadDir(s, fLeftView);
+    If ParamCount > 1 Then Begin
+      s := ParamStr(2)
+    End
+    Else
+      s := finiFile.ReadString(iniRight, iniLastDir, ds);
+    If Not DirectoryExists(s) Then Begin
+      s := ds;
+    End;
+    LoadDir(s, fRightView);
+    fWorkThread := TWorkThread.create(true);
+    fWorkThread.FreeOnTerminate := false;
+    fWorkThread.OnByteTransfereStatistic := @OnByteTransfereStatistic;
+    fWorkThread.OnStartJob := @OnStartJob;
+    fWorkThread.OnFinishJob := @OnFinishJob;
+    fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
+    fWorkThread.OnAddSubJobs := @OnAddSubJobs;
+    fWorkThread.Start;
+  end;
 end;
 
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
@@ -880,6 +889,7 @@ Begin
   // Navigation mittels Return
   If key = VK_RETURN Then Begin
     // Ein Verzeichnis wird geöffnet
+    Screen.Cursor:=crHourGlass;
     If aListview.Selected.SubItems[1] = '<DIR>' Then Begin
       // Ein Ordner Zurück
       If aListview.Selected.caption = '[..]' Then Begin
@@ -930,6 +940,7 @@ Begin
 {$IFDEF Windows}
       End;
 {$ENDIF}
+      Screen.Cursor:=crDefault;
     End;
   End;
   // F5 = Copy
@@ -1160,14 +1171,16 @@ End;
 
 procedure TForm1.mnFilemanagerLClick(Sender: TObject);
 begin
-  if Edit1.Text<>'' then
-    OpenDocument(ExtractFilePath(Edit1.Text));
+  if Edit1.Text<>'' then begin
+    OpenDocument(IncludeTrailingPathDelimiter(Edit1.Text));
+  end;
 end;
 
 procedure TForm1.mnFileManagerRClick(Sender: TObject);
 begin
-  if Edit2.Text<>'' then
-    OpenDocument(ExtractFilePath(Edit2.Text));
+  if Edit2.Text<>'' then begin
+    OpenDocument(IncludeTrailingPathDelimiter(Edit2.Text));
+  end;
 end;
 
 procedure TForm1.mnMoveShortcutClick(Sender: TObject);  // Move shortcut button to the other panel
