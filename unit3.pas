@@ -104,7 +104,7 @@ Var
   SR: TSearchRec;
 Begin
   adirectory := IncludeTrailingPathDelimiter(adirectory);
-  If (FindFirstUTF8(aDirectory + '*', faAnyFile And faDirectory, SR) = 0) Then Begin
+  If (FindFirstUTF8(aDirectory + '*', faAnyFile, SR) = 0) Then Begin
     Repeat
       // Dank dieser Variante sind wir case insensitiv, obwohl es das Betriebsystem eventuell ist !
       If (SR.Name <> '.') And (SR.Name <> '..') And (SR.Attr And FaDirectory <> FaDirectory) Then Begin

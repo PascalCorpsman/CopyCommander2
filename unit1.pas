@@ -414,7 +414,7 @@ Begin
    * (22.02.2022) 0.05 = Fix: Roll back OnActivate procedure
    *                     Fix: Open file manager was incorrectly called in LINUX environmat
    *                     Fix showing bug for files with no "name"
-   *              0.06 =
+   *              0.06 = Fix: Diff Dialog did not find hidden files
    *
    *******************************************************
    *  Silk icon set 1.3 used
