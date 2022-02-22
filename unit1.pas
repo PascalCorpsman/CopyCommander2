@@ -435,6 +435,7 @@ Begin
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
    * Noch Offen:
+   *             del dir im Synchronize Dialog
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
   Width:=finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);
