@@ -80,12 +80,12 @@ Type
     StatusBar1: TStatusBar;
     StatusBar2: TStatusBar;
     Procedure ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
-    procedure Edit1DblClick(Sender: TObject);
+    Procedure Edit1DblClick(Sender: TObject);
     Procedure Edit1KeyPress(Sender: TObject; Var Key: char);
-    procedure Edit2DblClick(Sender: TObject);
+    Procedure Edit2DblClick(Sender: TObject);
     Procedure Edit2KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
     Procedure Edit2KeyPress(Sender: TObject; Var Key: char);
-    procedure FormActivate(Sender: TObject);
+    Procedure FormActivate(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
@@ -106,7 +106,7 @@ Type
     Procedure mnCreateShortcutRClick(Sender: TObject);
     Procedure MenuItem19Click(Sender: TObject);
     Procedure mnCreateShortcutLClick(Sender: TObject);
-    procedure mnCopyBtnClick(Sender: TObject);
+    Procedure mnCopyBtnClick(Sender: TObject);
     Procedure mnDeleteShortcutClick(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem4Click(Sender: TObject);
@@ -115,9 +115,9 @@ Type
     Procedure MenuItem7Click(Sender: TObject);
     Procedure MenuItem8Click(Sender: TObject);
     Procedure MenuItem9Click(Sender: TObject);
-    procedure mnFilemanagerLClick(Sender: TObject);
-    procedure mnFileManagerRClick(Sender: TObject);
-    procedure mnMoveShortcutClick(Sender: TObject);
+    Procedure mnFilemanagerLClick(Sender: TObject);
+    Procedure mnFileManagerRClick(Sender: TObject);
+    Procedure mnMoveShortcutClick(Sender: TObject);
     Procedure PairSplitter1Resize(Sender: TObject);
     Procedure Panel1Resize(Sender: TObject);
     Procedure Panel2Resize(Sender: TObject);
@@ -139,8 +139,8 @@ Type
     Procedure OnButtonClick(Sender: TObject);
     Procedure OnButtonContextPopup(Sender: TObject; MousePos: TPoint;
       Var Handled: Boolean);
-    Procedure CreateShortcutR;    // Create schortcut button on right panel
-    Procedure CreateShortCutL;    // Create shortcut button on left panel
+    Procedure CreateShortcutR; // Create schortcut button on right panel
+    Procedure CreateShortCutL; // Create shortcut button on left panel
     Procedure CopyShortcut;
     Procedure DeleteShortcut;
 
@@ -170,58 +170,58 @@ Const
   ImageIndexHDD = 2; // C:\, ...
   ImageIndexUnknownFile = 3;
 
-// Identifiers used for INI file
-  iniGeneral='General';
-  iniLeft='Left';
-  iniRight='Right';
-  iniBtn='Btn';
+  // Identifiers used for INI file
+  iniGeneral = 'General';
+  iniLeft = 'Left';
+  iniRight = 'Right';
+  iniBtn = 'Btn';
 
-  iniLastDir='LastDir';
-  iniShortcutButtonCount='ShortcutButtonCount';
-  iniAppHeight='AppHeight';
-  iniAppWidth='AppWidth';
-  iniCaption='Caption';
-  iniLink='Link';
-  iniPosition='Position';
+  iniLastDir = 'LastDir';
+  iniShortcutButtonCount = 'ShortcutButtonCount';
+  iniAppHeight = 'AppHeight';
+  iniAppWidth = 'AppWidth';
+  iniCaption = 'Caption';
+  iniLink = 'Link';
+  iniPosition = 'Position';
 
-  extra='.';  // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
+  extra = '.'; // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
   {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
    darauf achten, dass die Indizes stimmen - hier von 3..15}
-  extlist: array [4..20] of string = ('.txt.log.csv.',              {4}
-                                      '.avi.mov.mp4.mkv.webm.wmv.mpeg.ts.dv.',
-                                      '.bmp.tiff.tif.',
-                                      '.dll.so.',
-                                      '..exe.com.',
-                                      '.hlp.',
-                                      '.ini.cfg.conf.',             {10}
-                                      '.jpg.jpeg.png.gif.',
-                                      '.rar.zip.tar.gz.7z.',
-                                      '.mp3.ogg.wav.wv.flac.ape.m4a.shn.',
-                                      '.sh.bat.cmd.',
-                                      '.lfm.dfm.',
-                                      '.pas.lpr.dpr.',
-                                      '.htm.html.',
-                                      '.pdf.odt.',                 {18 Documents}
-                                      '.xml.',
-                                      '.css.');
+  extlist: Array[4..20] Of String = ('.txt.log.csv.', {4}
+    '.avi.mov.mp4.mkv.webm.wmv.mpeg.ts.dv.',
+    '.bmp.tiff.tif.',
+    '.dll.so.',
+    '..exe.com.',
+    '.hlp.',
+    '.ini.cfg.conf.', {10}
+    '.jpg.jpeg.png.gif.',
+    '.rar.zip.tar.gz.7z.',
+    '.mp3.ogg.wav.wv.flac.ape.m4a.shn.',
+    '.sh.bat.cmd.',
+    '.lfm.dfm.',
+    '.pas.lpr.dpr.',
+    '.htm.html.',
+    '.pdf.odt.', {18 Documents}
+    '.xml.',
+    '.css.');
   (*
    * Ermittelt den ImageIndex zu einer Gegebenen Dateiendung (Heuristisch)
    *)
 
-   Function FileTypeToIndex(ext: String): Integer;
-   var
-     i: integer;
+Function FileTypeToIndex(ext: String): Integer;
+Var
+  i: integer;
 
-   Begin
-     result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Grafik.
-     ext := lowercase(ext);
-     for i:=low(extlist) to high(extlist) do begin
-       if pos(extra+ext+extra, extlist[i])>0 then begin
-         result:=i;
-         break;
-       end;
-     end;
-   End;
+Begin
+  result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Grafik.
+  ext := lowercase(ext);
+  For i := low(extlist) To high(extlist) Do Begin
+    If pos(extra + ext + extra, extlist[i]) > 0 Then Begin
+      result := i;
+      break;
+    End;
+  End;
+End;
 
 
 (*
@@ -411,9 +411,10 @@ Begin
    *                     Added double click to pathname-edits to create shortcuts ( Pull request by H. Elsner)
    *                     Added menu Open in file manager ( Pull request by H. Elsner)
    *                     Added app icon ( Pull request by H. Elsner)
-   *                     Fix: Roll back OnActivate procedure
+   * (22.02.2022) 0.05 = Fix: Roll back OnActivate procedure
    *                     Fix: Open file manager was incorrectly called in LINUX environmat
-   *              0.05 =
+   *                     Fix showing bug for files with no "name"
+   *              0.06 =
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -430,7 +431,7 @@ Begin
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
                  - File name for some files in home directory are not visible in LINUX Mint
    *)
-  Caption := 'Copycommander2 ver. 0.05';
+  Caption := 'Copycommander2 ver. 0.06';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
@@ -438,8 +439,8 @@ Begin
    *             del dir im Synchronize Dialog
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
-  Width:=finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);
-  Height:=finiFile.ReadInteger(iniGeneral, iniAppHeight, Height);
+  Width := finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);
+  Height := finiFile.ReadInteger(iniGeneral, iniAppHeight, Height);
   fShortCutButtons := Nil;
   LoadShortCutButtons;
 
@@ -454,7 +455,7 @@ Begin
   fRightView.ListView := ListView2;
   fRightView.Edit := Edit2;
   fRightView.StatusBar := StatusBar2;
-  startup:=true;
+  startup := true;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -495,10 +496,11 @@ Begin
 End;
 
 {2022-02-20 Added: Create shortcut button by double click [h-elsner]}
-procedure TForm1.Edit2DblClick(Sender: TObject);  // Create chortcut on double click
-begin
+
+Procedure TForm1.Edit2DblClick(Sender: TObject); // Create chortcut on double click
+Begin
   CreateShortcutR;
-end;
+End;
 
 Procedure TForm1.ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
 Var
@@ -555,10 +557,11 @@ Begin
 End;
 
 {2022-02-20 Added: Create shortcut button by double click [h-elsner]}
-procedure TForm1.Edit1DblClick(Sender: TObject);
-begin
+
+Procedure TForm1.Edit1DblClick(Sender: TObject);
+Begin
   CreateShortcutL;
-end;
+End;
 
 Procedure TForm1.Edit2KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
 Begin
@@ -578,13 +581,13 @@ Begin
   If Key = #13 Then LoadDir(Edit2.text, fRightView);
 End;
 
-procedure TForm1.FormActivate(Sender: TObject);
+Procedure TForm1.FormActivate(Sender: TObject);
 Var
   ds, s: String;
-begin
+Begin
   // Laden der Letzten Verzeichnisse
-  if startup then begin
-    startup:=false;    // do it only once
+  If startup Then Begin
+    startup := false; // do it only once
     // Laden der Letzten Verzeichnisse
     ds := GetUserDir;
     If ParamCount >= 1 Then Begin
@@ -614,8 +617,8 @@ begin
     fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
     fWorkThread.OnAddSubJobs := @OnAddSubJobs;
     fWorkThread.Start;
-  end;
-end;
+  End;
+End;
 
 Procedure TForm1.FormDropFiles(Sender: TObject; Const FileNames: Array Of String
   );
@@ -1026,11 +1029,11 @@ Begin
 End;
 
 Procedure TForm1.mnCreateShortcutLClick(Sender: TObject);
-begin
+Begin
   CreateShortcutL;
-end;
+End;
 
-Procedure TForm1.CreateShortCutL;    // Create shortcut button on left panel
+Procedure TForm1.CreateShortCutL; // Create shortcut button on left panel
 Var
   cnt: Integer;
   LinkName: String;
@@ -1052,38 +1055,39 @@ Begin
 End;
 
 {2022-02-20 Added: Copy shortcut button to the other side [h-elsner]}
-procedure TForm1.mnCopyBtnClick(Sender: TObject);
-begin
+
+Procedure TForm1.mnCopyBtnClick(Sender: TObject);
+Begin
   CopyShortcut;
-end;
+End;
 
 Procedure TForm1.CopyShortcut;
 Var
   cnt: Integer;
   psn: String;
 
-begin
+Begin
   // Copy shortcut button to the other side
   cnt := finiFile.ReadInteger(iniGeneral, iniShortcutButtonCount, 0);
   finiFile.WriteInteger(iniGeneral, iniShortcutButtonCount, cnt + 1);
-  psn:=finiFile.ReadString(iniBtn, iniPosition + IntToStr(fButtonPopupTag), iniLeft);
-  if psn = iniRight then begin
-    finiFile.WriteString(iniBtn, iniPosition +  IntToStr(cnt), iniLeft);   // to the other side
-  end else
-  begin
-    finiFile.WriteString(iniBtn, iniPosition +  IntToStr(cnt), iniRight);
-  end;
+  psn := finiFile.ReadString(iniBtn, iniPosition + IntToStr(fButtonPopupTag), iniLeft);
+  If psn = iniRight Then Begin
+    finiFile.WriteString(iniBtn, iniPosition + IntToStr(cnt), iniLeft); // to the other side
+  End
+  Else Begin
+    finiFile.WriteString(iniBtn, iniPosition + IntToStr(cnt), iniRight);
+  End;
   finiFile.WriteString(iniBtn, iniCaption + inttostr(cnt), finiFile.ReadString(iniBtn, iniCaption + IntToStr(fButtonPopupTag), psn));
   finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), finiFile.ReadString(iniBtn, iniLink + IntToStr(fButtonPopupTag), Edit1.Text));
   LoadShortCutButtons();
-end;
+End;
 
 Procedure TForm1.mnCreateShortcutRClick(Sender: TObject);
-begin
+Begin
   CreateShortcutR;
-end;
+End;
 
-Procedure TForm1.CreateShortcutR;    // Create schortcut button on right panel
+Procedure TForm1.CreateShortcutR; // Create schortcut button on right panel
 Var
   cnt: Integer;
   LinkName: String;
@@ -1168,25 +1172,25 @@ Begin
   ListView1KeyDown(ListView2, key, []);
 End;
 
-procedure TForm1.mnFilemanagerLClick(Sender: TObject);
-begin
-  if Edit1.Text<>'' then begin
+Procedure TForm1.mnFilemanagerLClick(Sender: TObject);
+Begin
+  If Edit1.Text <> '' Then Begin
     OpenDocument(IncludeTrailingPathDelimiter(Edit1.Text));
-  end;
-end;
+  End;
+End;
 
-procedure TForm1.mnFileManagerRClick(Sender: TObject);
-begin
-  if Edit2.Text<>'' then begin
+Procedure TForm1.mnFileManagerRClick(Sender: TObject);
+Begin
+  If Edit2.Text <> '' Then Begin
     OpenDocument(IncludeTrailingPathDelimiter(Edit2.Text));
-  end;
-end;
+  End;
+End;
 
-procedure TForm1.mnMoveShortcutClick(Sender: TObject);  // Move shortcut button to the other panel
-begin
+Procedure TForm1.mnMoveShortcutClick(Sender: TObject); // Move shortcut button to the other panel
+Begin
   CopyShortcut;
   DeleteShortcut;
-end;
+End;
 
 Procedure TForm1.PairSplitter1Resize(Sender: TObject);
 Begin
@@ -1374,26 +1378,27 @@ Begin
 End;
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
+
 Procedure TForm1.LoadShortCutButtons;
 Var
   cnt, i: Integer;
 
 Begin
-  For i := 0 To high(fShortCutButtons) Do Begin         // Delete all buttons
+  For i := 0 To high(fShortCutButtons) Do Begin // Delete all buttons
     fShortCutButtons[i].Button.Free;
   End;
   cnt := finiFile.ReadInteger(iniGeneral, iniShortcutButtonCount, 0);
   setlength(fShortCutButtons, cnt);
-  For i := 0 To high(fShortCutButtons) Do Begin         // Create shortcut buttons
-    fShortCutButtons[i].Side:=finiFile.ReadString(iniBtn, iniPosition + inttostr(i), iniLeft);
-    if fShortCutButtons[i].Side = iniRight then begin   // To right panel
+  For i := 0 To high(fShortCutButtons) Do Begin // Create shortcut buttons
+    fShortCutButtons[i].Side := finiFile.ReadString(iniBtn, iniPosition + inttostr(i), iniLeft);
+    If fShortCutButtons[i].Side = iniRight Then Begin // To right panel
       fShortCutButtons[i].Button := TButton.Create(Panel2);
       fShortCutButtons[i].Button.Parent := Panel2;
     End
-    Else Begin                                          // To left panel
+    Else Begin // To left panel
       fShortCutButtons[i].Button := TButton.Create(Panel1);
       fShortCutButtons[i].Button.Parent := Panel1;
-    end;
+    End;
     fShortCutButtons[i].Button.Name := 'ShortcutBtn' + inttostr(i);
     fShortCutButtons[i].Button.Caption := finiFile.ReadString(iniBtn, iniCaption + inttostr(i), '');
     fShortCutButtons[i].Button.Tag := i;
@@ -1410,62 +1415,65 @@ End;
 
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
-Procedure TForm1.Panel1Resize(Sender: TObject);    // left panel
+
+Procedure TForm1.Panel1Resize(Sender: TObject); // left panel
 Var
   w, n, i, p: Integer;
 Begin
   If high(fShortCutButtons) = -1 Then exit;
-  n:=0;
+  n := 0;
   For i := 0 To high(fShortCutButtons) Do Begin
-    if fShortCutButtons[i].Side = iniLeft then
-      inc(n);                                     // Number buttons on panel
-  end;
-  if n > 0 then begin
+    If fShortCutButtons[i].Side = iniLeft Then
+      inc(n); // Number buttons on panel
+  End;
+  If n > 0 Then Begin
     w := (Panel1.width - 14) Div n;
-    p:=0;
+    p := 0;
     For i := 0 To high(fShortCutButtons) Do Begin
-      if fShortCutButtons[i].Side = iniLeft then begin
+      If fShortCutButtons[i].Side = iniLeft Then Begin
         fShortCutButtons[i].Button.width := w;
         fShortCutButtons[i].Button.left := 7 + p * w;
-        inc(p);                                  // Count buttons left
-      end;
-    end;
-  end;
+        inc(p); // Count buttons left
+      End;
+    End;
+  End;
 End;
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
-Procedure TForm1.Panel2Resize(Sender: TObject);    // right panel
+
+Procedure TForm1.Panel2Resize(Sender: TObject); // right panel
 Var
   w, n, i, p: Integer;
 Begin
   If high(fShortCutButtons) = -1 Then exit;
-  n:=0;
+  n := 0;
   For i := 0 To high(fShortCutButtons) Do Begin
-    if fShortCutButtons[i].Side = iniRight then
-      inc(n);                                     // Number buttons on panel
-  end;
-  if n > 0 then begin
+    If fShortCutButtons[i].Side = iniRight Then
+      inc(n); // Number buttons on panel
+  End;
+  If n > 0 Then Begin
     w := (Panel2.width - 14) Div n;
-    p:=0;
+    p := 0;
     For i := 0 To high(fShortCutButtons) Do Begin
-      if fShortCutButtons[i].Side = iniRight then begin
+      If fShortCutButtons[i].Side = iniRight Then Begin
         fShortCutButtons[i].Button.width := w;
         fShortCutButtons[i].Button.left := 7 + p * w;
-        inc(p);                                   // Count buttons right
-      end;
-    end;
-  end;
+        inc(p); // Count buttons right
+      End;
+    End;
+  End;
 End;
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
+
 Procedure TForm1.OnButtonClick(Sender: TObject);
 Begin
-  if fShortCutButtons[TButton(sender).Tag].Side = iniRight then begin
+  If fShortCutButtons[TButton(sender).Tag].Side = iniRight Then Begin
     LoadDir(fShortCutButtons[TButton(sender).Tag].Link, fRightView)
-  end
-  else begin                                     // left side is default
+  End
+  Else Begin // left side is default
     LoadDir(fShortCutButtons[TButton(sender).Tag].Link, fLeftView);
-  end;
+  End;
 End;
 
 Procedure TForm1.OnButtonContextPopup(Sender: TObject; MousePos: TPoint;
@@ -1475,10 +1483,11 @@ Begin
 End;
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
+
 Procedure TForm1.mnDeleteShortcutClick(Sender: TObject);
-begin
+Begin
   DeleteShortcut;
-end;
+End;
 
 Procedure TForm1.DeleteShortcut;
 Var
@@ -1486,7 +1495,7 @@ Var
 Begin
   // Delete Shortcutbutton Entry
   cnt := finiFile.ReadInteger('General', 'ShortcutButtonCount', 0);
-  For i := fButtonPopupTag To cnt - 1 Do Begin        // Set new button number above the button to be deleted
+  For i := fButtonPopupTag To cnt - 1 Do Begin // Set new button number above the button to be deleted
     finiFile.WriteString(iniBtn, iniLink + inttostr(i), finiFile.ReadString(iniBtn, iniLink + inttostr(i + 1), ''));
     finiFile.WriteString(iniBtn, iniCaption + inttostr(i), finiFile.ReadString(iniBtn, iniCaption + inttostr(i + 1), ''));
     finiFile.WriteString(iniBtn, iniPosition + inttostr(i), finiFile.ReadString(iniBtn, iniPosition + inttostr(i + 1), ''));
@@ -1615,11 +1624,17 @@ Begin
             *)
             inc(FileCount);
             item := view.listview.Items.Add;
-            item.Caption := ExtractFileNameOnly(sr.Name);
-            s := ExtractFileExt(sr.name);
-            s := copy(s, 2, length(s));
+            If pos('.', sr.name) = 1 Then Begin
+              item.Caption := sr.Name;
+              item.SubItems.add('');
+            End
+            Else Begin
+              item.Caption := ExtractFileNameOnly(sr.Name);
+              s := ExtractFileExt(sr.name);
+              s := copy(s, 2, length(s));
+              item.SubItems.add(s);
+            End;
             item.ImageIndex := FileTypeToIndex(s);
-            item.SubItems.add(s);
             item.SubItems.add(FileSizeToString(sr.Size));
             TotalFileSize := TotalFileSize + sr.Size;
           End;
