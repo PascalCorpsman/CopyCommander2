@@ -415,6 +415,7 @@ Begin
    *                     Fix: Open file manager was incorrectly called in LINUX environmat
    *                     Fix showing bug for files with no "name"
    *              0.06 = Fix: Diff Dialog did not find hidden files
+   *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -436,7 +437,8 @@ Begin
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
    * Noch Offen:
-   *             del dir im Synchronize Dialog
+   *             -del dir im Synchronize Dialog
+   *             -Kontext menü "show Size" -> Für Verzeichnisse
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
   Width := finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);

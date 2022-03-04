@@ -391,7 +391,11 @@ Begin
       fCopyFileDetailError := 'Unable to read source file';
       exit;
     End;
-    FileSize := FileSeek(SourceFile, 0, fsFromEnd);
+    (*
+     * We need to cast the 0 to force the compiler to use the 64-Bit version, otherwise
+     * the filesize is wrong for files larger then 2^32 Bytes
+     *)
+    FileSize := FileSeek(SourceFile, int64(0), fsFromEnd);
     RemainingFileSize := FileSize;
     // Prüfen ob die Datei auf dem Ziellaufwerk überhaupt noch genug Platz hat
     FreeDiskSpace := GetFreeDiskSpaceOf(ExtractFilePath(dest));
@@ -439,7 +443,7 @@ Begin
         RemainingFileSize := RemainingFileSize - BufferSize;
         fStatistic.TransferedBytes := fStatistic.TransferedBytes + BufferSize;
       End;
-      fJobProgress := min(100, max(0, round(100 - ((100 * RemainingFileSize) / FileSize))));
+      fJobProgress := min(100, max(0, 100 - ((100 * RemainingFileSize) Div FileSize)));
       CheckForOnFileTransfereStatistic();
     End;
     FileClose(DestFile);
