@@ -366,7 +366,7 @@ Function TWorkThread.FileCopy(source, dest: String): Boolean;
 Var
   SourceFile, DestFile: integer;
   FileSize, RemainingFileSize: QWord;
-  buffer: Packed Array[0..FileCopyBufferSize - 1] Of Byte;
+  buffer: Array[0..FileCopyBufferSize - 1] Of Byte;
   BufferSize: Integer;
   FreeDiskSpace: Int64;
 Begin
