@@ -431,7 +431,6 @@ Begin
 
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
-                 - File name for some files in home directory are not visible in LINUX Mint
    *)
   Caption := 'Copycommander2 ver. 0.07';
   (*
