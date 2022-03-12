@@ -414,8 +414,9 @@ Begin
    * (22.02.2022) 0.05 = Fix: Roll back OnActivate procedure
    *                     Fix: Open file manager was incorrectly called in LINUX environmat
    *                     Fix showing bug for files with no "name"
-   *              0.06 = Fix: Diff Dialog did not find hidden files
+   * (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files
    *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
+   *              0.07
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -432,7 +433,7 @@ Begin
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
                  - File name for some files in home directory are not visible in LINUX Mint
    *)
-  Caption := 'Copycommander2 ver. 0.06';
+  Caption := 'Copycommander2 ver. 0.07';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
