@@ -393,7 +393,7 @@ Begin
     End;
     (*
      * We need to cast the 0 to force the compiler to use the 64-Bit version, otherwise
-     * the filesize is wrong for files larger then 2^32 Bytes
+     * the filesize is wrong for files larger then (2^31)-1 Bytes
      *)
     FileSize := FileSeek(SourceFile, int64(0), fsFromEnd);
     RemainingFileSize := FileSize;
