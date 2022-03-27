@@ -416,6 +416,7 @@ Begin
    *                     Fix showing bug for files with no "name"
    * (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files
    *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
+   *                     Feature Request - blue and green arrows in sync dialog
    *              0.07
    *
    *******************************************************
