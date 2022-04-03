@@ -1,24 +1,24 @@
 object Form2: TForm2
   Left = 393
-  Height = 480
+  Height = 631
   Top = 191
-  Width = 640
+  Width = 999
   Caption = 'Form2'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 631
+  ClientWidth = 999
   OnClose = FormClose
   OnCreate = FormCreate
   Position = poScreenCenter
   LCLVersion = '2.3.0.0'
   object Panel1: TPanel
     Left = 0
-    Height = 200
+    Height = 230
     Top = 0
-    Width = 640
+    Width = 999
     Align = alTop
     Caption = 'Panel1'
-    ClientHeight = 200
-    ClientWidth = 640
+    ClientHeight = 230
+    ClientWidth = 999
     TabOrder = 0
     object Label1: TLabel
       Left = 16
@@ -38,29 +38,29 @@ object Form2: TForm2
       Left = 16
       Height = 20
       Top = 32
-      Width = 610
+      Width = 969
       Anchors = [akTop, akLeft, akRight]
       TabOrder = 0
     end
     object Label3: TLabel
       Left = 16
       Height = 16
-      Top = 55
+      Top = 88
       Width = 43
       Caption = 'Speed :'
     end
     object Label4: TLabel
       Left = 72
       Height = 16
-      Top = 55
+      Top = 88
       Width = 41
       Caption = 'Label4'
     end
     object Chart1: TChart
       Left = 2
-      Height = 111
-      Top = 72
-      Width = 638
+      Height = 101
+      Top = 112
+      Width = 997
       AxisList = <      
         item
           Marks.LabelBrush.Style = bsClear
@@ -90,21 +90,29 @@ object Form2: TForm2
     object Label5: TLabel
       Left = 16
       Height = 16
-      Top = 184
+      Top = 214
       Width = 41
       Anchors = [akLeft, akBottom]
       Caption = 'Label5'
+    end
+    object ProgressBar2: TProgressBar
+      Left = 16
+      Height = 20
+      Top = 56
+      Width = 969
+      Anchors = [akTop, akLeft, akRight]
+      TabOrder = 2
     end
   end
   object Panel2: TPanel
     Left = 0
     Height = 60
-    Top = 420
-    Width = 640
+    Top = 571
+    Width = 999
     Align = alBottom
     Caption = 'Panel2'
     ClientHeight = 60
-    ClientWidth = 640
+    ClientWidth = 999
     TabOrder = 1
     object Button1: TButton
       Left = 16
@@ -116,7 +124,7 @@ object Form2: TForm2
       TabOrder = 0
     end
     object Button2: TButton
-      Left = 505
+      Left = 864
       Height = 25
       Top = 24
       Width = 121
@@ -129,7 +137,7 @@ object Form2: TForm2
       Left = 152
       Height = 25
       Top = 24
-      Width = 340
+      Width = 699
       Anchors = [akTop, akLeft, akRight]
       Caption = 'Pause'
       OnClick = Button3Click
@@ -147,8 +155,8 @@ object Form2: TForm2
   object StatusBar1: TStatusBar
     Left = 0
     Height = 23
-    Top = 397
-    Width = 640
+    Top = 548
+    Width = 999
     Panels = <    
       item
         Width = 50
@@ -159,15 +167,15 @@ object Form2: TForm2
     Cursor = crVSplit
     Left = 0
     Height = 5
-    Top = 200
-    Width = 640
+    Top = 230
+    Width = 999
     Align = alTop
     ResizeAnchor = akTop
   end
   object TreeView1: TTreeView
     Left = 8
     Height = 168
-    Top = 208
+    Top = 240
     Width = 193
     TabOrder = 4
   end

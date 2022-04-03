@@ -52,10 +52,11 @@ Type
   TJobArray = Array Of TJob;
 
   TTransfereStatistic = Record
-    TransferedBytes: QWord; // Anzahl Bytes welche in den letzten 1000ms übertragen wurden.
+    TransferedBytesInLast1000ms: UInt64; // Anzahl Bytes welche in den letzten 1000ms übertragen wurden.
     JobsToDo: integer; // Anzahl noch Aussstehender Jobs
     SubJobsTodo: integer; // Anzahl der noch zu bearbeitenden SubJobs
-    BytesToCopy: Int64; // Anzahl der "Bytes" welche noch Kopiert werden müssen
+    BytesToCopyToFinishJobs: UInt64; // Anzahl der "Bytes" Kopiert werden müssen um alle Jobs Ab zu arbeiten \ Sobald alle Jobs abgearbeitet wurden, gehen diese beiden Zähler wieder auf 0
+    BytesCopiedInJobs: UInt64; // Anzahl Bytes, welche gesammt kopiert wurden                               /
   End;
 
   TOnJobEvent = Procedure(Sender: TObject; Job: TJob) Of Object;
@@ -91,8 +92,6 @@ Type
     fLCLSubJobArray: TJobArray; // Zum Synchronized aufruf mit LCLOnAddSubJobs
 
     fCopyFileDetailError: String; // Details warum FileCopy fehlgeschlagen ist
-
-
 
     Function FileCopy(source, dest: String): Boolean; // Die Funktion, welche das Tatsächliche Datei kopieren macht
     Function getHasErrorJobs: Boolean;
@@ -441,7 +440,13 @@ Begin
         End;
         // Und noch die Statistik Nach ziehen
         RemainingFileSize := RemainingFileSize - BufferSize;
-        fStatistic.TransferedBytes := fStatistic.TransferedBytes + BufferSize;
+        fStatistic.TransferedBytesInLast1000ms := fStatistic.TransferedBytesInLast1000ms + BufferSize;
+        fStatistic.BytesCopiedInJobs := fStatistic.BytesCopiedInJobs + BufferSize;
+        // Wenn Alle Jobs abgearbeitet wurden -> Reset aller Counter -> dadurch laufen die Statistiken in der Ansicht wieder "Hübsch"
+        If (fStatistic.BytesCopiedInJobs = fStatistic.BytesToCopyToFinishJobs) Then Begin
+          fStatistic.BytesCopiedInJobs := 0;
+          fStatistic.BytesToCopyToFinishJobs := 0;
+        End;
       End;
       fJobProgress := min(100, max(0, 100 - ((100 * RemainingFileSize) Div FileSize)));
       CheckForOnFileTransfereStatistic();
@@ -470,12 +475,24 @@ End;
 
 Function TWorkThread.getHasErrorJobs: Boolean;
 Begin
-  result := Not FErrorJobFifo.isempty;
+  If assigned(FErrorJobFifo) Then Begin
+    result := Not FErrorJobFifo.isempty;
+  End
+  Else Begin
+    // This could only be happen, if the question was asked before the Thread Inits itself
+    result := false;
+  End;
 End;
 
 Function TWorkThread.GetHasQuestions: Boolean;
 Begin
-  result := Not FQuestionJobFifo.isempty;
+  If assigned(FQuestionJobFifo) Then Begin
+    result := Not FQuestionJobFifo.isempty;
+  End
+  Else Begin
+    // This could only be happen, if the question was asked before the Thread Inits itself
+    result := false;
+  End;
 End;
 
 Procedure TWorkThread.Init;
@@ -494,9 +511,9 @@ Begin
   fStatisticTimeStamp := GetTickCount64;
   fStatistic.JobsToDo := 0;
   fStatistic.SubJobsTodo := 0;
-  fStatistic.TransferedBytes := 0;
-  fStatistic.BytesToCopy := 0;
-
+  fStatistic.TransferedBytesInLast1000ms := 0;
+  fStatistic.BytesToCopyToFinishJobs := 0;
+  fStatistic.BytesCopiedInJobs := 0;
 End;
 
 Procedure TWorkThread.TearDown;
@@ -789,7 +806,7 @@ Begin
       fStatistic.SubJobsTodo := fSubJubFifo.Count;
       Synchronize(@LCLOnByteTransfereStatistic);
     End;
-    fStatistic.TransferedBytes := 0;
+    fStatistic.TransferedBytesInLast1000ms := 0;
   End;
 End;
 
@@ -814,7 +831,7 @@ Procedure TWorkThread.LCLOnFinishJob;
 Begin
   Case fAJob.JobType Of
     jtCopyFile, jtMoveFile: Begin
-        fStatistic.BytesToCopy := fStatistic.BytesToCopy - GetFileSize(fAJob.Source);
+        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(fAJob.Source);
       End;
   End;
   If Assigned(OnFinishJob) Then Begin
@@ -893,10 +910,10 @@ Begin
   End;
   Case job.JobType Of
     jtCopyFile, jtMoveFile: Begin
-        fStatistic.BytesToCopy := fStatistic.BytesToCopy + GetFileSize(Job.Source);
+        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + GetFileSize(Job.Source);
       End;
     jtCopyDir, jtMoveDir: Begin
-        fStatistic.BytesToCopy := fStatistic.BytesToCopy + GetDirSize(Job.Source);
+        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + GetDirSize(Job.Source);
       End;
   End;
   FInJobFifo.Push(job);
@@ -941,8 +958,8 @@ Begin
       If j = job Then Begin
         // Wird der Job abgebrochen, dann muss das auch noch berücksichtigt werden
         Case j.JobType Of
-          jtCopyFile, jtMoveFile: fStatistic.BytesToCopy := fStatistic.BytesToCopy - GetFileSize(j.Source);
-          jtCopyDir, jtMoveDir: fStatistic.BytesToCopy := fStatistic.BytesToCopy - GetDirSize(j.Source);
+          jtCopyFile, jtMoveFile: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(j.Source);
+          jtCopyDir, jtMoveDir: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetDirSize(j.Source);
         End;
         If assigned(OnFinishJob) Then Begin
           OnFinishJob(self, j);
@@ -966,8 +983,8 @@ Begin
           If j = job Then Begin
             // Wird der Job abgebrochen, dann muss das auch noch berücksichtigt werden
             Case j.JobType Of
-              jtCopyFile, jtMoveFile: fStatistic.BytesToCopy := fStatistic.BytesToCopy - GetFileSize(j.Source);
-              jtCopyDir, jtMoveDir: fStatistic.BytesToCopy := fStatistic.BytesToCopy - GetDirSize(j.Source);
+              jtCopyFile, jtMoveFile: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(j.Source);
+              jtCopyDir, jtMoveDir: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetDirSize(j.Source);
             End;
             If assigned(OnFinishJob) Then Begin
               OnFinishJob(self, j);

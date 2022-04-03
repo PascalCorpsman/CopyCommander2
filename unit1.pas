@@ -167,7 +167,9 @@ Uses LazFileUtils, LCLType, math
 Const
   ImageIndexFolder = 0;
   ImageIndexBack = 1;
+{$IFDEF Windows}
   ImageIndexHDD = 2; // C:\, ...
+{$ENDIF}
   ImageIndexUnknownFile = 3;
 
   // Identifiers used for INI file
@@ -417,7 +419,9 @@ Begin
    * (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files
    *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
    *                     Feature Request - blue and green arrows in sync dialog
-   *              0.07
+   *              0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
+   *                     Fix: Crash, when GetHasQuestions was called before init
+   *                     Add Overall Progressbar
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -431,7 +435,7 @@ Begin
    *******************************************************
 
    *
-   * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet)
+   * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet), Shift Pfeil runter geht aber.
    *)
   Caption := 'Copycommander2 ver. 0.07';
   (*
@@ -440,6 +444,8 @@ Begin
    * Noch Offen:
    *             -del dir im Synchronize Dialog
    *             -Kontext menü "show Size" -> Für Verzeichnisse
+   * Bekannte Bugs: Ändert sich die Anzahl der Bytes in einem Job der noch in der Warteschlange ist, dann stimmt am ende die Statistik nicht mehr
+   *                Da die Byteanzahl beim Adden gespeichert und dann nicht mehr aktualisiert wird
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
   Width := finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);

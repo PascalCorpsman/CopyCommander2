@@ -28,6 +28,7 @@ Type
     Panel1: TPanel;
     Panel2: TPanel;
     ProgressBar1: TProgressBar;
+    ProgressBar2: TProgressBar;
     Splitter1: TSplitter;
     StatusBar1: TStatusBar;
     TreeView1: TTreeView;
@@ -53,7 +54,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit1;
+Uses unit1, math;
 
 
 (*
@@ -168,26 +169,35 @@ End;
 Procedure TForm2.AddNewData(Const Statistic: TTransfereStatistic);
 Var
   TimeInmS, AvgPerS: Int64;
+  totalpercent: UInt64;
 Begin
-  Chart1LineSeries1.Add(Statistic.TransferedBytes);
+  Chart1LineSeries1.Add(Statistic.TransferedBytesInLast1000ms);
 
   // Tiefpass über die letzten 10s
-  fTPBufferSum := fTPBufferSum + Statistic.TransferedBytes - fTPBuffer[fTPBuffer_ptr];
-  fTPBuffer[fTPBuffer_ptr] := Statistic.TransferedBytes;
+  fTPBufferSum := fTPBufferSum + Statistic.TransferedBytesInLast1000ms - fTPBuffer[fTPBuffer_ptr];
+  fTPBuffer[fTPBuffer_ptr] := Statistic.TransferedBytesInLast1000ms;
   fTPBuffer_ptr := (fTPBuffer_ptr + 9) Mod length(fTPBuffer);
   Chart1LineSeries2.Add(fTPBufferSum / length(fTPBuffer));
   AvgPerS := trunc(fTPBufferSum / length(fTPBuffer));
   TimeInmS := 0;
   If AvgPerS <> 0 Then Begin
-    TimeInmS := trunc((Statistic.BytesToCopy * 1000) / AvgPerS);
+    //    TimeInmS := trunc((Statistic.BytesToCopy * 1000) / AvgPerS);
+    TimeInmS := trunc(((Statistic.BytesToCopyToFinishJobs - Statistic.BytesCopiedInJobs) * 1000) / AvgPerS);
   End;
   TimeInmS := TimeInmS - (TimeInmS Mod 1000); // die ms 0en das macht so eigentlich keinen Sinn.
-  Label4.Caption := 'Average: ' + FileSizeToString(AvgPerS) + '/s, actual: ' + FileSizeToString(Statistic.TransferedBytes) + '/s';
-  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopy) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
+  Label4.Caption := 'Average: ' + FileSizeToString(AvgPerS) + '/s, actual: ' + FileSizeToString(Statistic.TransferedBytesInLast1000ms) + '/s';
+  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopyToFinishJobs - Statistic.BytesCopiedInJobs) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
   // max 100 Datenpunkte
   If Chart1Lineseries1.Count > 100 Then Begin
     Chart1Lineseries1.Delete(0);
     Chart1Lineseries2.Delete(0);
+  End;
+  If Statistic.BytesToCopyToFinishJobs <> 0 Then Begin
+    totalpercent := (Statistic.BytesCopiedInJobs * 100) Div Statistic.BytesToCopyToFinishJobs;
+    ProgressBar2.Position := min(100, max(0, totalpercent));
+  End
+  Else Begin
+    ProgressBar2.Position := 0;
   End;
 
   StatusBar1.Panels[0].Text := format('Pending jobs (subjobs): %d (%d)', [Statistic.JobsToDo, Statistic.SubJobsTodo]);
