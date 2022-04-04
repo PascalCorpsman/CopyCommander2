@@ -34,7 +34,7 @@ folderview to the desination of this file.
 Drag and Drop more then one file from outside into one of the listviews, will put them on
 the copy list, to copy them to the folder shown in the listview.
 
-The inapp shortcutbuttons :
+The in app shortcutbuttons :
 
 If you want to use predefined loaddirectories enter the path into one of the edit fields and right 
 click on that field to open the popup menu, than click "Add". If you want to delete one of the 
