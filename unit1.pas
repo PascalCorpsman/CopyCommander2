@@ -419,9 +419,10 @@ Begin
    * (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files
    *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
    *                     Feature Request - blue and green arrows in sync dialog
-   *              0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
+   * (10.04.2022) 0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
    *                     Fix: Crash, when GetHasQuestions was called before init
    *                     Add Overall Progressbar
+   *              0.08 =
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -437,7 +438,7 @@ Begin
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet), Shift Pfeil runter geht aber.
    *)
-  Caption := 'Copycommander2 ver. 0.07';
+  Caption := 'Copycommander2 ver. 0.08';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
