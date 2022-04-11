@@ -55,8 +55,9 @@ Type
     TransferedBytesInLast1000ms: UInt64; // Anzahl Bytes welche in den letzten 1000ms übertragen wurden.
     JobsToDo: integer; // Anzahl noch Aussstehender Jobs
     SubJobsTodo: integer; // Anzahl der noch zu bearbeitenden SubJobs
-    BytesToCopyToFinishJobs: UInt64; // Anzahl der "Bytes" Kopiert werden müssen um alle Jobs Ab zu arbeiten \ Sobald alle Jobs abgearbeitet wurden, gehen diese beiden Zähler wieder auf 0
-    BytesCopiedInJobs: UInt64; // Anzahl Bytes, welche gesammt kopiert wurden                               /
+    BytesToCopyToFinishJobs: UInt64; // Anzahl der "Bytes" die kopiert werden müssen um alle offenen Jobs Ab zu arbeiten \
+    BytesCopiedInJobs: UInt64; // Anzahl Bytes, welche gesammt kopiert wurden                                             > Sobald alle Jobs abgearbeitet wurden, gehen diese Zähler wieder auf 0
+    TotalJobBytes: uint64; // Gesammt Anzahl an Bytes welche zur Abarbeitung der Jobs kopiert werden müssen              /
   End;
 
   TOnJobEvent = Procedure(Sender: TObject; Job: TJob) Of Object;
@@ -442,11 +443,6 @@ Begin
         RemainingFileSize := RemainingFileSize - BufferSize;
         fStatistic.TransferedBytesInLast1000ms := fStatistic.TransferedBytesInLast1000ms + BufferSize;
         fStatistic.BytesCopiedInJobs := fStatistic.BytesCopiedInJobs + BufferSize;
-        // Wenn Alle Jobs abgearbeitet wurden -> Reset aller Counter -> dadurch laufen die Statistiken in der Ansicht wieder "Hübsch"
-        If (fStatistic.BytesCopiedInJobs = fStatistic.BytesToCopyToFinishJobs) Then Begin
-          fStatistic.BytesCopiedInJobs := 0;
-          fStatistic.BytesToCopyToFinishJobs := 0;
-        End;
       End;
       fJobProgress := min(100, max(0, 100 - ((100 * RemainingFileSize) Div FileSize)));
       CheckForOnFileTransfereStatistic();
@@ -828,10 +824,23 @@ Begin
 End;
 
 Procedure TWorkThread.LCLOnFinishJob;
+Var
+  js: Int64;
 Begin
   Case fAJob.JobType Of
     jtCopyFile, jtMoveFile: Begin
-        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(fAJob.Source);
+        js := GetFileSize(fAJob.Dest);
+        If fStatistic.BytesToCopyToFinishJobs >= js Then Begin
+          fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
+        End
+        Else Begin
+          fStatistic.BytesToCopyToFinishJobs := 0;
+        End;
+        // Wenn Alle Jobs abgearbeitet wurden -> Reset aller Counter -> dadurch laufen die Statistiken in der Ansicht wieder "Hübsch"
+        If (fStatistic.BytesToCopyToFinishJobs = 0) Then Begin
+          fStatistic.BytesCopiedInJobs := 0;
+          fStatistic.TotalJobBytes := 0;
+        End;
       End;
   End;
   If Assigned(OnFinishJob) Then Begin
@@ -902,6 +911,8 @@ Begin
 End;
 
 Procedure TWorkThread.AddJob(Const Job: TJob);
+Var
+  js: uint64;
 Begin
   // Wurde ein Job mit für alle beantworten zurück in die Queue gegeben dann müssen wir das hier auch übernehmen
   // das erst bei der Bearbeitung zu machen ist zu spät, dass muss sofort gemacht werden !
@@ -910,10 +921,14 @@ Begin
   End;
   Case job.JobType Of
     jtCopyFile, jtMoveFile: Begin
-        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + GetFileSize(Job.Source);
+        js := GetFileSize(Job.Source);
+        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + js;
+        fStatistic.TotalJobBytes := fStatistic.TotalJobBytes + js;
       End;
     jtCopyDir, jtMoveDir: Begin
-        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + GetDirSize(Job.Source);
+        js := GetDirSize(Job.Source);
+        fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + js;
+        fStatistic.TotalJobBytes := fStatistic.TotalJobBytes + js;
       End;
   End;
   FInJobFifo.Push(job);
@@ -945,6 +960,7 @@ Var
   found, p: Boolean;
   i: Integer;
   j: TJob;
+  js: uint64;
 Begin
   p := JobPause;
   JobPause := true;
@@ -958,8 +974,16 @@ Begin
       If j = job Then Begin
         // Wird der Job abgebrochen, dann muss das auch noch berücksichtigt werden
         Case j.JobType Of
-          jtCopyFile, jtMoveFile: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(j.Source);
-          jtCopyDir, jtMoveDir: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetDirSize(j.Source);
+          jtCopyFile, jtMoveFile: Begin
+              js := GetFileSize(j.Source);
+              fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
+              fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;
+            End;
+          jtCopyDir, jtMoveDir: Begin
+              js := GetDirSize(j.Source);
+              fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
+              fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;
+            End;
         End;
         If assigned(OnFinishJob) Then Begin
           OnFinishJob(self, j);
@@ -983,8 +1007,16 @@ Begin
           If j = job Then Begin
             // Wird der Job abgebrochen, dann muss das auch noch berücksichtigt werden
             Case j.JobType Of
-              jtCopyFile, jtMoveFile: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetFileSize(j.Source);
-              jtCopyDir, jtMoveDir: fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - GetDirSize(j.Source);
+              jtCopyFile, jtMoveFile: Begin
+                  js := GetFileSize(j.Source);
+                  fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
+                  fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;
+                End;
+              jtCopyDir, jtMoveDir: Begin
+                  js := GetDirSize(j.Source);
+                  fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
+                  fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;
+                End;
             End;
             If assigned(OnFinishJob) Then Begin
               OnFinishJob(self, j);

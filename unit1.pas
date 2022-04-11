@@ -40,6 +40,8 @@ Type
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
+    MenuItem1: TMenuItem;
+    MenuItem18: TMenuItem;
     mnFileManagerR: TMenuItem;
     mnFilemanagerL: TMenuItem;
     mnMoveShortcut: TMenuItem;
@@ -190,7 +192,7 @@ Const
   {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
    darauf achten, dass die Indizes stimmen - hier von 3..15}
   extlist: Array[4..20] Of String = ('.txt.log.csv.', {4}
-    '.avi.mov.mp4.mkv.webm.wmv.mpeg.ts.dv.',
+    '.avi.mov.mp4.m4v.mpg.mkv.webm.wmv.mpeg.ts.dv.',
     '.bmp.tiff.tif.',
     '.dll.so.',
     '..exe.com.',
@@ -422,7 +424,9 @@ Begin
    * (10.04.2022) 0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
    *                     Fix: Crash, when GetHasQuestions was called before init
    *                     Add Overall Progressbar
-   *              0.08 =
+   *              0.08 = Fix: Progress Calculation was complete garbage, rewrite calculations
+   *                     Enable Rename Feature in Submenu
+   *                     Add some video extensions to list
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -797,7 +801,7 @@ Begin
   If key = VK_INSERT Then Begin
     For i := 0 To aListview.Items.Count - 1 Do Begin
       If lisFocused In aListview.Items[i].GetStates Then Begin
-        // TODO: Unter Linux geht das nicht :(
+        // TODO: Unter Linux geht das nicht :(, dafür geht SHIFT + Pfeil nach unten
         j := min(i + 1, aListview.Items.Count - 1);
         aListview.Items[j].Selected := true;
         aListview.Items[j].MakeVisible(False);

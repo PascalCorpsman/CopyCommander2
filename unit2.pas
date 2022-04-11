@@ -182,24 +182,24 @@ Begin
   TimeInmS := 0;
   If AvgPerS <> 0 Then Begin
     //    TimeInmS := trunc((Statistic.BytesToCopy * 1000) / AvgPerS);
-    TimeInmS := trunc(((Statistic.BytesToCopyToFinishJobs - Statistic.BytesCopiedInJobs) * 1000) / AvgPerS);
+    TimeInmS := trunc(((Statistic.BytesToCopyToFinishJobs {- Statistic.BytesCopiedInJobs}) * 1000) / AvgPerS);
   End;
   TimeInmS := TimeInmS - (TimeInmS Mod 1000); // die ms 0en das macht so eigentlich keinen Sinn.
   Label4.Caption := 'Average: ' + FileSizeToString(AvgPerS) + '/s, actual: ' + FileSizeToString(Statistic.TransferedBytesInLast1000ms) + '/s';
-  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopyToFinishJobs - Statistic.BytesCopiedInJobs) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
+  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopyToFinishJobs {- Statistic.BytesCopiedInJobs}) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
   // max 100 Datenpunkte
   If Chart1Lineseries1.Count > 100 Then Begin
     Chart1Lineseries1.Delete(0);
     Chart1Lineseries2.Delete(0);
   End;
-  If Statistic.BytesToCopyToFinishJobs <> 0 Then Begin
-    totalpercent := (Statistic.BytesCopiedInJobs * 100) Div Statistic.BytesToCopyToFinishJobs;
-    ProgressBar2.Position := min(100, max(0, totalpercent));
+  If Statistic.TotalJobBytes <> 0 Then Begin
+    totalpercent := 100;
+    totalpercent := (Statistic.BytesCopiedInJobs * totalpercent) Div Statistic.TotalJobBytes;
+    ProgressBar2.Position := totalpercent;
   End
   Else Begin
     ProgressBar2.Position := 0;
   End;
-
   StatusBar1.Panels[0].Text := format('Pending jobs (subjobs): %d (%d)', [Statistic.JobsToDo, Statistic.SubJobsTodo]);
 End;
 
