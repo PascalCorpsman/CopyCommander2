@@ -424,9 +424,10 @@ Begin
    * (10.04.2022) 0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
    *                     Fix: Crash, when GetHasQuestions was called before init
    *                     Add Overall Progressbar
-   *              0.08 = Fix: Progress Calculation was complete garbage, rewrite calculations
+   * (11.04.2022) 0.08 = Fix: Progress Calculation was complete garbage, rewrite calculations
    *                     Enable Rename Feature in Submenu
    *                     Add some video extensions to list
+   *              0.09 =
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -442,7 +443,7 @@ Begin
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet), Shift Pfeil runter geht aber.
    *)
-  Caption := 'Copycommander2 ver. 0.08';
+  Caption := 'Copycommander2 ver. 0.09';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt

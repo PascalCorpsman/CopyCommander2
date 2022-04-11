@@ -178,22 +178,22 @@ Begin
   fTPBuffer[fTPBuffer_ptr] := Statistic.TransferedBytesInLast1000ms;
   fTPBuffer_ptr := (fTPBuffer_ptr + 9) Mod length(fTPBuffer);
   Chart1LineSeries2.Add(fTPBufferSum / length(fTPBuffer));
-  AvgPerS := trunc(fTPBufferSum / length(fTPBuffer));
+  AvgPerS := fTPBufferSum div length(fTPBuffer);
   TimeInmS := 0;
   If AvgPerS <> 0 Then Begin
-    //    TimeInmS := trunc((Statistic.BytesToCopy * 1000) / AvgPerS);
-    TimeInmS := trunc(((Statistic.BytesToCopyToFinishJobs {- Statistic.BytesCopiedInJobs}) * 1000) / AvgPerS);
+    TimeInmS := 1000; // Force Calculations to be done in uint64
+    TimeInmS := (Statistic.BytesToCopyToFinishJobs * TimeInmS) div AvgPerS;
   End;
   TimeInmS := TimeInmS - (TimeInmS Mod 1000); // die ms 0en das macht so eigentlich keinen Sinn.
   Label4.Caption := 'Average: ' + FileSizeToString(AvgPerS) + '/s, actual: ' + FileSizeToString(Statistic.TransferedBytesInLast1000ms) + '/s';
-  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopyToFinishJobs {- Statistic.BytesCopiedInJobs}) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
+  label5.caption := 'Progress: ' + FileSizeToString(Statistic.BytesToCopyToFinishJobs) + ' to copy, will take aprox: ' + PrettyTime(TimeInmS);
   // max 100 Datenpunkte
   If Chart1Lineseries1.Count > 100 Then Begin
     Chart1Lineseries1.Delete(0);
     Chart1Lineseries2.Delete(0);
   End;
   If Statistic.TotalJobBytes <> 0 Then Begin
-    totalpercent := 100;
+    totalpercent := 100; // Force Calculations to be done in uint64
     totalpercent := (Statistic.BytesCopiedInJobs * totalpercent) Div Statistic.TotalJobBytes;
     ProgressBar2.Position := totalpercent;
   End
