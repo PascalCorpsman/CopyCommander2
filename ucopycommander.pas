@@ -868,6 +868,10 @@ Begin
           End;
           FInJobFifo.Pop.free;
         End;
+        // Reset der Statistic
+        fStatistic.BytesToCopyToFinishJobs := 0;
+        fStatistic.BytesCopiedInJobs := 0;
+        fStatistic.TotalJobBytes := 0;
         FCancelallJobs := false;
       End;
       If (FInJobFifo.isempty) Or (JobPause) Then Begin
@@ -881,11 +885,18 @@ Begin
               Synchronize(@LCLOnFinishJob);
             End;
             FInJobFifo.Pop.free;
+            fAJob := Nil; // Den haben wir grad Freigegeben -> also Nil
             fCancelActualJob := false;
           End;
         End
         Else Begin
           fAllResult := jaNotChoosen;
+        End;
+        // Wenn Alle Jobs Abgearbeitet sind auf jeden Fall die Statistik Resetten
+        If FInJobFifo.isempty Then Begin
+          fStatistic.BytesToCopyToFinishJobs := 0;
+          fStatistic.BytesCopiedInJobs := 0;
+          fStatistic.TotalJobBytes := 0;
         End;
         sleep(1);
       End
@@ -976,10 +987,12 @@ Begin
         Case j.JobType Of
           jtCopyFile, jtMoveFile: Begin
               js := GetFileSize(j.Source);
+              // TODO: BUG hier darf nicht alles abgezogen werden
               fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
               fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;
             End;
           jtCopyDir, jtMoveDir: Begin
+              // TODO: BUG hier darf nicht alles abgezogen werden
               js := GetDirSize(j.Source);
               fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs - js;
               fStatistic.TotalJobBytes := fStatistic.TotalJobBytes - js;

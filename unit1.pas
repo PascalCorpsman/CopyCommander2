@@ -442,6 +442,8 @@ Begin
 
    *
    * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet), Shift Pfeil runter geht aber.
+   *             - Wird ein Laufender Job Abgebrochen, dann werden die "fehlenden" Bytes nicht Korrekt von den Bytes to Copy abgezogen
+   *               \-> Am Ende bleiben dann Bytes über, die Engine nullt das zwar ganz am Schluss wenn die JobFifo leer ist, aber sauber ist anders.
    *)
   Caption := 'Copycommander2 ver. 0.09';
   (*
