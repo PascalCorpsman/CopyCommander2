@@ -482,7 +482,7 @@ Begin
   SetLength(RightFiles.Files, 0);
   SetLength(LeftFiles.Files, 0);
   If ListViewItemsCount = 0 Then Begin
-    result := 'Folders are synchron.';
+    result := 'Folders are equal.';
   End;
 End;
 
