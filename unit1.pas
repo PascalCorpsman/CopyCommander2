@@ -94,10 +94,12 @@ Type
     Procedure cbDirLeftKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
       );
     Procedure cbDirLeftKeyPress(Sender: TObject; Var Key: char);
+    Procedure cbDirLeftSelect(Sender: TObject);
     Procedure cbDirRightDblClick(Sender: TObject);
     Procedure cbDirRightKeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
     Procedure cbDirRightKeyPress(Sender: TObject; Var Key: char);
+    procedure cbDirRightSelect(Sender: TObject);
     Procedure FormActivate(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -204,9 +206,10 @@ Const
 
   extra = '.'; // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
   {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
-   darauf achten, dass die Indizes stimmen - hier von 3..15}
-  extlist: Array[4..20] Of String = ('.txt.log.csv.', {4}
-    '.avi.mov.mp4.m4v.mpg.mkv.webm.wmv.mpeg.ts.dv.',
+   darauf achten, dass die Indizes stimmen - hier von 4..20}
+  extlist: Array[4..20] Of String = (
+    '.txt.log.csv.', {4}
+    '.avi.mov.mp4.m4v.mpg.mkv.webm.wmv.mpeg.ts.dv.', {5}
     '.bmp.tiff.tif.',
     '.dll.so.',
     '..exe.com.',
@@ -216,12 +219,13 @@ Const
     '.rar.zip.tar.gz.7z.',
     '.mp3.ogg.wav.wv.flac.ape.m4a.shn.',
     '.sh.bat.cmd.',
-    '.lfm.dfm.',
+    '.lfm.dfm.', {15}
     '.pas.lpr.dpr.',
     '.htm.html.',
     '.pdf.odt.', {18 Documents}
     '.xml.',
-    '.css.');
+    '.css.' {20}
+    );
 
   maxDirs = 10; // Maximale Anzahl Pfade in der ComboBox
 
@@ -232,10 +236,13 @@ Const
    *)
 
 Procedure UpdateComboboxHistory(cb: TComboBox; maxCount: integer);
+Var
+  directory: String;
 Begin
+  directory := IncludeTrailingPathDelimiter(cb.Text);
   // DropDownListe füllen
-  If (cb.Text <> '') And (cb.Items.IndexOf(cb.Text) < 0) Then // nur wenn noch nicht in Liste
-    cb.Items.Insert(0, cb.Text);
+  If (directory <> '') And (cb.Items.IndexOf(directory) < 0) Then // nur wenn noch nicht in Liste
+    cb.Items.Insert(0, directory);
   // ggf Anzahl in Liste begrenzen
   If cb.Items.Count > MaxCount Then
     cb.Items.Delete(MaxCount);
@@ -645,6 +652,11 @@ Begin
   End;
 End;
 
+Procedure TForm1.cbDirLeftSelect(Sender: TObject);
+Begin
+  LoadDir(cbDirLeft.text, fLeftView);
+End;
+
 Procedure TForm1.cbDirRightDblClick(Sender: TObject);
 Begin
   CreateShortcutR;
@@ -670,6 +682,11 @@ Begin
     LoadDir(cbDirRight.Text, fRightView);
   End;
 End;
+
+procedure TForm1.cbDirRightSelect(Sender: TObject);
+begin
+  LoadDir(cbDirRight.Text, fRightView);
+end;
 
 Procedure TForm1.FormActivate(Sender: TObject);
 Var
@@ -1240,6 +1257,7 @@ End;
 Procedure TForm1.MenuItem5Click(Sender: TObject);
 Begin
   // Reload Directory
+  fLeftView.ComboBox.Text := '';
   LoadDir(fLeftView.aDirectory, fLeftView);
 End;
 
@@ -1255,6 +1273,7 @@ End;
 Procedure TForm1.MenuItem7Click(Sender: TObject);
 Begin
   // Reload Directory
+  fRightView.ComboBox.Text := '';
   LoadDir(fRightView.aDirectory, fRightView);
 End;
 
