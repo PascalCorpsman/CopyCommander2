@@ -6,7 +6,8 @@ Interface
 
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
-  PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types, lclintf;
+  PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types, lclintf,
+  Buttons;
 
 Type
 
@@ -18,7 +19,7 @@ Type
     sortstate: integer;
     (* Daten welche 1 mal initialisiert werden*)
     ListView: TListView;
-    Edit: TEdit;
+    ComboBox: TComboBox;
     StatusBar: TStatusBar;
   End;
 
@@ -35,13 +36,15 @@ Type
   TForm1 = Class(TForm)
     AppIcons: TImageList;
     ApplicationProperties1: TApplicationProperties;
-    Edit1: TEdit;
-    Edit2: TEdit;
+    cbDirLeft: TComboBox;
+    cbDirRight: TComboBox;
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
     MenuItem1: TMenuItem;
     MenuItem18: TMenuItem;
+    MenuItem23: TMenuItem;
+    MenuItem24: TMenuItem;
     mnFileManagerR: TMenuItem;
     mnFilemanagerL: TMenuItem;
     mnMoveShortcut: TMenuItem;
@@ -79,14 +82,22 @@ Type
     PopupMenu3: TPopupMenu;
     PopupMenu4: TPopupMenu;
     PopupMenu5: TPopupMenu;
+    btnDirLeft: TSpeedButton;
+    btnDirRight: TSpeedButton;
+    SelectDirectoryDialog1: TSelectDirectoryDialog;
     StatusBar1: TStatusBar;
     StatusBar2: TStatusBar;
     Procedure ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
-    Procedure Edit1DblClick(Sender: TObject);
-    Procedure Edit1KeyPress(Sender: TObject; Var Key: char);
-    Procedure Edit2DblClick(Sender: TObject);
-    Procedure Edit2KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
-    Procedure Edit2KeyPress(Sender: TObject; Var Key: char);
+    Procedure btnDirLeftClick(Sender: TObject);
+    Procedure btnDirRightClick(Sender: TObject);
+    Procedure cbDirLeftDblClick(Sender: TObject);
+    Procedure cbDirLeftKeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState
+      );
+    Procedure cbDirLeftKeyPress(Sender: TObject; Var Key: char);
+    Procedure cbDirRightDblClick(Sender: TObject);
+    Procedure cbDirRightKeyDown(Sender: TObject; Var Key: Word;
+      Shift: TShiftState);
+    Procedure cbDirRightKeyPress(Sender: TObject; Var Key: char);
     Procedure FormActivate(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -105,6 +116,8 @@ Type
     Procedure MenuItem15Click(Sender: TObject);
     Procedure MenuItem16Click(Sender: TObject);
     Procedure MenuItem17Click(Sender: TObject);
+    Procedure MenuItem23Click(Sender: TObject);
+    Procedure MenuItem24Click(Sender: TObject);
     Procedure mnCreateShortcutRClick(Sender: TObject);
     Procedure MenuItem19Click(Sender: TObject);
     Procedure mnCreateShortcutLClick(Sender: TObject);
@@ -181,6 +194,7 @@ Const
   iniBtn = 'Btn';
 
   iniLastDir = 'LastDir';
+  iniListDir = 'ListDir';
   iniShortcutButtonCount = 'ShortcutButtonCount';
   iniAppHeight = 'AppHeight';
   iniAppWidth = 'AppWidth';
@@ -208,9 +222,28 @@ Const
     '.pdf.odt.', {18 Documents}
     '.xml.',
     '.css.');
+
+  maxDirs = 10; // Maximale Anzahl Pfade in der ComboBox
+
+
   (*
-   * Ermittelt den ImageIndex zu einer Gegebenen Dateiendung (Heuristisch)
+   * Fügt den Aktuellen Wert der in der Combobox steht in die Dropdownliste hinzu (wenn noch nicht enthalten)
+   * und kürzt ggf die Anzahl der Einträge auf maxCount Einträge herunter
    *)
+
+Procedure UpdateComboboxHistory(cb: TComboBox; maxCount: integer);
+Begin
+  // DropDownListe füllen
+  If (cb.Text <> '') And (cb.Items.IndexOf(cb.Text) < 0) Then // nur wenn noch nicht in Liste
+    cb.Items.Insert(0, cb.Text);
+  // ggf Anzahl in Liste begrenzen
+  If cb.Items.Count > MaxCount Then
+    cb.Items.Delete(MaxCount);
+End;
+
+(*
+ * Ermittelt den ImageIndex zu einer Gegebenen Dateiendung (Heuristisch)
+ *)
 
 Function FileTypeToIndex(ext: String): Integer;
 Var
@@ -427,7 +460,10 @@ Begin
    * (11.04.2022) 0.08 = Fix: Progress Calculation was complete garbage, rewrite calculations
    *                     Enable Rename Feature in Submenu
    *                     Add some video extensions to list
-   *              0.09 =
+   * (15.09.2022) 0.09 = Edit Eingabefelder gegen ComboBox getauscht,
+   *                     es werden die letzten 10 [maxDirs=10] gemerkt und in einer Drop-Down-Liste angeboten,
+   *                     Die Liste kann via contextmenü gelöscht werden
+   *              0.10 =
    *
    *******************************************************
    *  Silk icon set 1.3 used
@@ -466,11 +502,11 @@ Begin
   Panel2.Caption := '';
 
   fLeftView.ListView := ListView1;
-  fLeftView.Edit := Edit1;
+  fLeftView.ComboBox := cbDirLeft;
   fLeftView.StatusBar := StatusBar1;
 
   fRightView.ListView := ListView2;
-  fRightView.Edit := Edit2;
+  fRightView.ComboBox := cbDirRight;
   fRightView.StatusBar := StatusBar2;
   startup := true;
 End;
@@ -491,8 +527,12 @@ Begin
   Sleep(10);
   fWorkThread.free;
   fWorkThread := Nil;
-  finiFile.WriteString(iniLeft, iniLastDir, edit1.text);
-  finiFile.WriteString(iniRight, iniLastDir, edit2.text);
+
+  finiFile.WriteString(iniLeft, iniLastDir, cbDirLeft.text);
+  finiFile.WriteString(iniRight, iniLastDir, cbDirRight.text);
+  finiFile.WriteString(iniLeft, iniListDir, cbDirLeft.Items.CommaText);
+  finiFile.WriteString(iniRight, iniListDir, cbDirRight.Items.CommaText);
+
   finiFile.WriteInteger(iniGeneral, iniAppWidth, Width);
   finiFile.WriteInteger(iniGeneral, iniAppHeight, Height);
   finiFile.Free;
@@ -507,18 +547,6 @@ Begin
   End;
 End;
 
-Procedure TForm1.Edit1KeyPress(Sender: TObject; Var Key: char);
-Begin
-  If Key = #13 Then LoadDir(Edit1.text, fLeftView);
-End;
-
-{2022-02-20 Added: Create shortcut button by double click [h-elsner]}
-
-Procedure TForm1.Edit2DblClick(Sender: TObject); // Create chortcut on double click
-Begin
-  CreateShortcutR;
-End;
-
 Procedure TForm1.ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
 Var
   j: TJob;
@@ -527,60 +555,77 @@ Begin
     If fWorkThread.HasErrorJobs Then Begin
       form4.AddErrorJob(fWorkThread.PopErrorJob());
     End;
-  End;
-  If fWorkThread.HasQuestions And (Not form5.Visible) Then Begin
-    (*
-     * Wenn der User eine Antwort gibt, aber in der Queue sind schon mehrere Anfragen drin
-     * klopft die App die hier alle ab und das läst sich nur verhindern wenn wir hier noch mal
-     * explizit fragen ob es nicht doch schon ne Antwort gibt :-)
-     *)
-    If fWorkThread.AllResult <> jaNotChoosen Then Begin
-      j := fWorkThread.PopQuestion();
-      j.Answer := fWorkThread.AllResult;
-      AddJob(j);
-    End
-    Else Begin
-      form5.ModalResult := mrNone;
-      form5.CheckBox1.Checked := false;
-      form5.Answer := jaNotChoosen;
-      j := fWorkThread.TopQuestion();
-      form5.Label1.Caption := j.Source + LineEnding + '->' + LineEnding + j.Dest;
-      form5.ShowModal;
-      Case form5.Answer Of
-        jaNotChoosen: Begin
-            // nix da das wird in 1ms noch mal angefragt
-          End;
-        jaSkip: Begin
-            j := fWorkThread.PopQuestion();
-            If form5.CheckBox1.Checked Then Begin
-              j.ToAll := true;
-              j.Answer := jaSkip;
-              AddJob(j);
-            End
-            Else Begin
-              j.free;
+    If fWorkThread.HasQuestions And (Not form5.Visible) Then Begin
+      (*
+       * Wenn der User eine Antwort gibt, aber in der Queue sind schon mehrere Anfragen drin
+       * klopft die App die hier alle ab und das läst sich nur verhindern wenn wir hier noch mal
+       * explizit fragen ob es nicht doch schon ne Antwort gibt :-)
+       *)
+      If fWorkThread.AllResult <> jaNotChoosen Then Begin
+        j := fWorkThread.PopQuestion();
+        j.Answer := fWorkThread.AllResult;
+        AddJob(j);
+      End
+      Else Begin
+        form5.ModalResult := mrNone;
+        form5.CheckBox1.Checked := false;
+        form5.Answer := jaNotChoosen;
+        j := fWorkThread.TopQuestion();
+        form5.Label1.Caption := j.Source + LineEnding + '->' + LineEnding + j.Dest;
+        form5.ShowModal;
+        Case form5.Answer Of
+          jaNotChoosen: Begin
+              // nix da das wird in 1ms noch mal angefragt
             End;
-          End;
-        jaReplace: Begin
-            j := fWorkThread.PopQuestion();
-            j.ToAll := Form5.CheckBox1.Checked;
-            j.Answer := jaReplace;
-            AddJob(j);
-          End;
+          jaSkip: Begin
+              j := fWorkThread.PopQuestion();
+              If form5.CheckBox1.Checked Then Begin
+                j.ToAll := true;
+                j.Answer := jaSkip;
+                AddJob(j);
+              End
+              Else Begin
+                j.free;
+              End;
+            End;
+          jaReplace: Begin
+              j := fWorkThread.PopQuestion();
+              j.ToAll := Form5.CheckBox1.Checked;
+              j.Answer := jaReplace;
+              AddJob(j);
+            End;
+        End;
       End;
     End;
   End;
   sleep(1);
 End;
 
-{2022-02-20 Added: Create shortcut button by double click [h-elsner]}
+Procedure TForm1.btnDirLeftClick(Sender: TObject);
+Begin
+  SelectDirectoryDialog1.Title := '';
+  If SelectDirectoryDialog1.Execute Then Begin
+    cbDirLeft.Text := SelectDirectoryDialog1.FileName;
+    LoadDir(cbDirLeft.text, fLeftView);
+  End;
+End;
 
-Procedure TForm1.Edit1DblClick(Sender: TObject);
+Procedure TForm1.btnDirRightClick(Sender: TObject);
+Begin
+  SelectDirectoryDialog1.Title := '';
+  If SelectDirectoryDialog1.Execute Then Begin
+    cbDirRight.Text := SelectDirectoryDialog1.FileName;
+    LoadDir(cbDirRight.text, fLeftView);
+  End;
+End;
+
+Procedure TForm1.cbDirLeftDblClick(Sender: TObject);
 Begin
   CreateShortcutL;
 End;
 
-Procedure TForm1.Edit2KeyDown(Sender: TObject; Var Key: Word; Shift: TShiftState);
+Procedure TForm1.cbDirLeftKeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
 Begin
   // STRG + S = Diff Viewer
   If (ssCtrl In shift) And (key = ord('S')) Then Begin
@@ -588,14 +633,42 @@ Begin
     exit;
   End;
   If key = VK_DOWN Then Begin
-    If sender = edit1 Then ListView1.SetFocus;
-    If sender = edit2 Then ListView2.SetFocus;
+    If sender = cbDirLeft Then ListView1.SetFocus;
+    If sender = cbDirRight Then ListView2.SetFocus;
   End;
 End;
 
-Procedure TForm1.Edit2KeyPress(Sender: TObject; Var Key: char);
+Procedure TForm1.cbDirLeftKeyPress(Sender: TObject; Var Key: char);
 Begin
-  If Key = #13 Then LoadDir(Edit2.text, fRightView);
+  If Key = #13 Then Begin
+    LoadDir(cbDirLeft.text, fLeftView);
+  End;
+End;
+
+Procedure TForm1.cbDirRightDblClick(Sender: TObject);
+Begin
+  CreateShortcutR;
+End;
+
+Procedure TForm1.cbDirRightKeyDown(Sender: TObject; Var Key: Word;
+  Shift: TShiftState);
+Begin
+  // STRG + S = Diff Viewer
+  If (ssCtrl In shift) And (key = ord('S')) Then Begin
+    DiffViewer();
+    exit;
+  End;
+  If key = VK_DOWN Then Begin
+    If sender = cbDirLeft Then ListView1.SetFocus;
+    If sender = cbDirRight Then ListView2.SetFocus;
+  End;
+End;
+
+Procedure TForm1.cbDirRightKeyPress(Sender: TObject; Var Key: char);
+Begin
+  If Key = #13 Then Begin
+    LoadDir(cbDirRight.Text, fRightView);
+  End;
 End;
 
 Procedure TForm1.FormActivate(Sender: TObject);
@@ -607,6 +680,10 @@ Begin
     startup := false; // do it only once
     // Laden der Letzten Verzeichnisse
     ds := GetUserDir;
+    // Laden der Drop-Down-Listen
+    cbDirLeft.Items.AddCommaText(finiFile.ReadString(iniLeft, iniListDir, ''));
+    cbDirRight.Items.AddCommaText(finiFile.ReadString(iniRight, iniListDir, ''));
+
     If ParamCount >= 1 Then Begin
       s := ParamStr(1)
     End
@@ -1045,6 +1122,16 @@ Begin
   ListView1KeyDown(ListView2, key, []);
 End;
 
+Procedure TForm1.MenuItem23Click(Sender: TObject);
+Begin
+  cbDirLeft.Items.Clear;
+End;
+
+Procedure TForm1.MenuItem24Click(Sender: TObject);
+Begin
+  cbDirRight.Items.Clear;
+End;
+
 Procedure TForm1.mnCreateShortcutLClick(Sender: TObject);
 Begin
   CreateShortcutL;
@@ -1056,8 +1143,8 @@ Var
   LinkName: String;
 Begin
   // Add Actual folder as Shortcut Button (Links)
-  If DirectoryExistsUTF8(Edit1.Text) Then Begin
-    LinkName := InputBox('Question', 'Please enter a label for: ' + edit1.text, '');
+  If DirectoryExistsUTF8(cbDirLeft.Text) Then Begin
+    LinkName := InputBox('Question', 'Please enter a label for: ' + cbDirLeft.text, '');
     If LinkName = '' Then Begin
       Showmessage('Invalid label.');
       exit;
@@ -1065,7 +1152,7 @@ Begin
     cnt := finiFile.ReadInteger(iniGeneral, iniShortcutButtonCount, 0);
     finiFile.WriteInteger(iniGeneral, iniShortcutButtonCount, cnt + 1);
     finiFile.WriteString(iniBtn, iniCaption + inttostr(cnt), LinkName);
-    finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), Edit1.Text);
+    finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), cbDirleft.Text);
     finiFile.WriteString(iniBtn, iniPosition + inttostr(cnt), iniLeft);
     LoadShortCutButtons();
   End;
@@ -1095,7 +1182,7 @@ Begin
     finiFile.WriteString(iniBtn, iniPosition + IntToStr(cnt), iniRight);
   End;
   finiFile.WriteString(iniBtn, iniCaption + inttostr(cnt), finiFile.ReadString(iniBtn, iniCaption + IntToStr(fButtonPopupTag), psn));
-  finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), finiFile.ReadString(iniBtn, iniLink + IntToStr(fButtonPopupTag), Edit1.Text));
+  finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), finiFile.ReadString(iniBtn, iniLink + IntToStr(fButtonPopupTag), cbDirLeft.Text));
   LoadShortCutButtons();
 End;
 
@@ -1110,8 +1197,8 @@ Var
   LinkName: String;
 Begin
   // Add Actual folder as Shortcut Button (Rechts)
-  If DirectoryExistsUTF8(Edit2.Text) Then Begin
-    LinkName := InputBox('Question', 'Please enter a label for: ' + edit2.text, '');
+  If DirectoryExistsUTF8(cbDirRight.Text) Then Begin
+    LinkName := InputBox('Question', 'Please enter a label for: ' + cbDirRight.text, '');
     If LinkName = '' Then Begin
       Showmessage('Invalid label.');
       exit;
@@ -1119,7 +1206,7 @@ Begin
     cnt := finiFile.ReadInteger(iniGeneral, iniShortcutButtonCount, 0);
     finiFile.WriteInteger(iniGeneral, iniShortcutButtonCount, cnt + 1);
     finiFile.WriteString(iniBtn, iniCaption + inttostr(cnt), LinkName);
-    finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), Edit2.Text);
+    finiFile.WriteString(iniBtn, iniLink + inttostr(cnt), cbDirRight.Text);
     finiFile.WriteString(iniBtn, iniPosition + inttostr(cnt), iniRight);
     LoadShortCutButtons();
   End;
@@ -1191,15 +1278,15 @@ End;
 
 Procedure TForm1.mnFilemanagerLClick(Sender: TObject);
 Begin
-  If Edit1.Text <> '' Then Begin
-    OpenDocument(IncludeTrailingPathDelimiter(Edit1.Text));
+  If cbDirLeft.Text <> '' Then Begin
+    OpenDocument(IncludeTrailingPathDelimiter(cbDirLeft.Text));
   End;
 End;
 
 Procedure TForm1.mnFileManagerRClick(Sender: TObject);
 Begin
-  If Edit2.Text <> '' Then Begin
-    OpenDocument(IncludeTrailingPathDelimiter(Edit2.Text));
+  If cbDirRight.Text <> '' Then Begin
+    OpenDocument(IncludeTrailingPathDelimiter(cbDirRight.Text));
   End;
 End;
 
@@ -1592,7 +1679,7 @@ Begin
   DirectoryCount := 0;
   FileCount := 0;
   View.ListView.Clear;
-  View.Edit.Text := dir;
+  View.ComboBox.Text := dir;
   View.sortstate := 0;
   TotalFileSize := 0;
 {$IFDEF Windows}
@@ -1604,6 +1691,7 @@ Begin
       view.StatusBar.Panels[0].Text := inttostr(DirectoryCount) + ' Folders, ' + inttostr(FileCount) + ' Files (' + FileSizeToString(TotalFileSize) + ')';
       exit; //-- Da ist was Komisch, das ignorieren wir mal lieber
     End;
+    UpdateComboboxHistory(View.ComboBox, maxDirs);
     View.ListView.BeginUpdate;
     // Verzeichniss zurück
     item := View.ListView.items.add;
