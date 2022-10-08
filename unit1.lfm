@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 353
   Height = 626
-  Top = 120
+  Top = 92
   Width = 777
   AllowDropFiles = True
   Caption = 'Form1'

@@ -622,7 +622,7 @@ Begin
   SelectDirectoryDialog1.Title := '';
   If SelectDirectoryDialog1.Execute Then Begin
     cbDirRight.Text := SelectDirectoryDialog1.FileName;
-    LoadDir(cbDirRight.text, fLeftView);
+    LoadDir(cbDirRight.text, fRightView);
   End;
 End;
 
