@@ -99,7 +99,7 @@ Type
     Procedure cbDirRightKeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
     Procedure cbDirRightKeyPress(Sender: TObject; Var Key: char);
-    procedure cbDirRightSelect(Sender: TObject);
+    Procedure cbDirRightSelect(Sender: TObject);
     Procedure FormActivate(Sender: TObject);
     Procedure FormClose(Sender: TObject; Var CloseAction: TCloseAction);
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -683,10 +683,10 @@ Begin
   End;
 End;
 
-procedure TForm1.cbDirRightSelect(Sender: TObject);
-begin
+Procedure TForm1.cbDirRightSelect(Sender: TObject);
+Begin
   LoadDir(cbDirRight.Text, fRightView);
-end;
+End;
 
 Procedure TForm1.FormActivate(Sender: TObject);
 Var
@@ -1778,9 +1778,9 @@ Begin
     Quick(1, StartOfFiles - 1);
     // Sortieren der Dateien StartOfFiles .. Ende
     Quick(StartOfFiles, View.ListView.items.Count - 1);
-{$IFDEF Windows}
     // Ein paar User Infos ausgeben.
     view.StatusBar.Panels[0].Text := inttostr(DirectoryCount) + ' Folders, ' + inttostr(FileCount) + ' Files (' + FileSizeToString(TotalFileSize) + '), Free disk space: ' + FileSizeToString(GetFreeDiskSpaceOf(Dir));
+{$IFDEF Windows}
   End
   Else Begin
     // Der User will die Verzeichnissliste haben
