@@ -1,3 +1,91 @@
+(******************************************************************************)
+(* CopyCommander2                                                  15.02.2022 *)
+(*                                                                            *)
+(* Version     : 0.09                                                         *)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* Support     : www.Corpsman.de                                              *)
+(*                                                                            *)
+(* Description : <Module_description>                                         *)
+(*                                                                            *)
+(* License     : See the file license.md, located under:                      *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(* Warranty    : There is no warranty, neither in correctness of the          *)
+(*               implementation, nor anything other that could happen         *)
+(*               or go wrong, use at your own risk.                           *)
+(*                                                                            *)
+(* Known Issues:                                                              *)
+(*    - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie   *)
+(*      erwartet), Shift Pfeil runter geht aber.                              *)
+(*    - Wird ein Laufender Job Abgebrochen, dann werden die "fehlenden" Bytes *)
+(*      nicht Korrekt von den Bytes to Copy abgezogen                         *)
+(*      \-> Am Ende bleiben dann Bytes über, die Engine nullt das zwar ganz   *)
+(*          am Schluss wenn die JobFifo leer ist, aber sauber ist anders.     *)
+(*    -Ändert sich die Anzahl der Bytes in einem Job der noch in der          *)
+(*       Warteschlange ist, dann stimmt am ende die Statistik nicht mehr      *)
+(*       Da die Byteanzahl beim Adden gespeichert und dann nicht mehr         *)
+(*       aktualisiert wird                                                    *)
+(*                                                                            *)
+(* History     : 0.01 - Initial version                                       *)
+(*  (15.02.2022) 0.01 = Initialversion                                        *)
+(*  (17.02.2022) 0.02 = Auswerten Paramstr beim Start (besseres               *)
+(*                      Fehlerhandling)                                       *)
+(*                      Windows: show Drive Letters as top Level              *)
+(*                      Fix: ListViewSelectItemIndex                          *)
+(*                      Fix: Linux: F7 dialog was doubled if entered via      *)
+(*                           keyboard.                                        *)
+(*  (18.02.2022) 0.03 = Fix: Anchors of Progress Label                        *)
+(*                      Refactor file ext icons ( Pull request by H. Elsner)  *)
+(*  (21.02.2022) 0.04 = Shortcut buttons seperated for left and right panels  *)
+(*                      (Pull request by H. Elsner)                           *)
+(*                      Added menu item to copy shortcut button to the other  *)
+(*                        panel ( Pull request by H. Elsner)                  *)
+(*                      Added menu item to move shortcut button to the other  *)
+(*                        panel ( Pull request by H. Elsner)                  *)
+(*                      Added double click to pathname-edits to create        *)
+(*                        shortcuts ( Pull request by H. Elsner)              *)
+(*                      Added menu Open in file manager ( Pull request by H.  *)
+(*                        Elsner)                                             *)
+(*                      Added app icon ( Pull request by H. Elsner)           *)
+(*  (22.02.2022) 0.05 = Fix: Roll back OnActivate procedure                   *)
+(*                      Fix: Open file manager was incorrectly called in LINUX*)
+(*                        environmat                                          *)
+(*                      Fix showing bug for files with no "name"              *)
+(*  (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files            *)
+(*                      Fix: Filesize of Files larger than 2^32-Bit was wrong *)
+(*                        detected -> Error on file finish                    *)
+(*                      Feature Request - blue and green arrows in sync dialog*)
+(*  (10.04.2022) 0.07 = Fix: Progress was not correct (filesize to copy did   *)
+(*                        not decrease during progress)                       *)
+(*                      Fix: Crash, when GetHasQuestions was called before    *)
+(*                        init                                                *)
+(*                      Add Overall Progressbar                               *)
+(*  (11.04.2022) 0.08 = Fix: Progress Calculation was complete garbage,       *)
+(*                        rewrite calculations                                *)
+(*                      Enable Rename Feature in Submenu                      *)
+(*                      Add some video extensions to list                     *)
+(*  (15.09.2022) 0.09 = Edit Eingabefelder gegen ComboBox getauscht,          *)
+(*                      es werden die letzten 10 [maxDirs=10] gemerkt und in  *)
+(*                        einer Drop-Down-Liste angeboten,                    *)
+(*                      Die Liste kann via contextmenü gelöscht werden        *)
+(*               0.10 =                                                       *)
+(*                                                                            *)
+(******************************************************************************)
+(*  Silk icon set 1.3 used                                                    *)
+(*  ----------------------                                                    *)
+(*  Mark James                                                                *)
+(*  http://www.famfamfam.com/lab/icons/silk/                                  *)
+(******************************************************************************)
+(*  This work is licensed under a                                             *)
+(*  Creative Commons Attribution 2.5 License.                                 *)
+(*  [ http://creativecommons.org/licenses/by/2.5/ ]                           *)
+(******************************************************************************)
 Unit Unit1;
 
 {$MODE objfpc}{$H+}
@@ -440,54 +528,6 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  (*
-   * Historie:
-   * (15.02.2022) 0.01 = Initialversion
-   * (17.02.2022) 0.02 = Auswerten Paramstr beim Start (besseres Fehlerhandling)
-   *                     Windows: show Drive Letters as top Level
-   *                     Fix: ListViewSelectItemIndex
-   *                     Fix: Linux: F7 dialog was doubled if entered via keyboard.
-   * (18.02.2022) 0.03 = Fix: Anchors of Progress Label
-   *                     Refactor file ext icons ( Pull request by H. Elsner)
-   * (21.02.2022) 0.04 = Shortcut buttons seperated for left and right panels ( Pull request by H. Elsner)
-   *                     Added menu item to copy shortcut button to the other panel ( Pull request by H. Elsner)
-   *                     Added menu item to move shortcut button to the other panel ( Pull request by H. Elsner)
-   *                     Added double click to pathname-edits to create shortcuts ( Pull request by H. Elsner)
-   *                     Added menu Open in file manager ( Pull request by H. Elsner)
-   *                     Added app icon ( Pull request by H. Elsner)
-   * (22.02.2022) 0.05 = Fix: Roll back OnActivate procedure
-   *                     Fix: Open file manager was incorrectly called in LINUX environmat
-   *                     Fix showing bug for files with no "name"
-   * (12.03.2022) 0.06 = Fix: Diff Dialog did not find hidden files
-   *                     Fix: Filesize of Files larger than 2^32-Bit was wrong detected -> Error on file finish
-   *                     Feature Request - blue and green arrows in sync dialog
-   * (10.04.2022) 0.07 = Fix: Progress was not correct (filesize to copy did not decrease during progress)
-   *                     Fix: Crash, when GetHasQuestions was called before init
-   *                     Add Overall Progressbar
-   * (11.04.2022) 0.08 = Fix: Progress Calculation was complete garbage, rewrite calculations
-   *                     Enable Rename Feature in Submenu
-   *                     Add some video extensions to list
-   * (15.09.2022) 0.09 = Edit Eingabefelder gegen ComboBox getauscht,
-   *                     es werden die letzten 10 [maxDirs=10] gemerkt und in einer Drop-Down-Liste angeboten,
-   *                     Die Liste kann via contextmenü gelöscht werden
-   *              0.10 =
-   *
-   *******************************************************
-   *  Silk icon set 1.3 used
-   *  ----------------------
-   *  Mark James
-   *  http://www.famfamfam.com/lab/icons/silk/
-   *******************************************************
-   *  This work is licensed under a
-   *  Creative Commons Attribution 2.5 License.
-   *  [ http://creativecommons.org/licenses/by/2.5/ ]
-   *******************************************************
-
-   *
-   * Known Bugs: - die "ins" taste funktioniert unter Linux nicht (zumindest nicht wie erwartet), Shift Pfeil runter geht aber.
-   *             - Wird ein Laufender Job Abgebrochen, dann werden die "fehlenden" Bytes nicht Korrekt von den Bytes to Copy abgezogen
-   *               \-> Am Ende bleiben dann Bytes über, die Engine nullt das zwar ganz am Schluss wenn die JobFifo leer ist, aber sauber ist anders.
-   *)
   Caption := 'Copycommander2 ver. 0.09';
   (*
    * Mindest Anforderungen:
@@ -495,8 +535,6 @@ Begin
    * Noch Offen:
    *             -del dir im Synchronize Dialog
    *             -Kontext menü "show Size" -> Für Verzeichnisse
-   * Bekannte Bugs: Ändert sich die Anzahl der Bytes in einem Job der noch in der Warteschlange ist, dann stimmt am ende die Statistik nicht mehr
-   *                Da die Byteanzahl beim Adden gespeichert und dann nicht mehr aktualisiert wird
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
   Width := finiFile.ReadInteger(iniGeneral, iniAppWidth, Width);

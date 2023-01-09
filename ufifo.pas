@@ -1,23 +1,33 @@
 (******************************************************************************)
-(* Programmer : Corpsman                                         23.09.2005   *)
+(* uFifo.pas                                                     23.09.2005   *)
 (*                                                                            *)
-(* Simulation einer FIFO in FPC.                                             *)
+(* Version     : 0.04                                                         *)
 (*                                                                            *)
-(* All die Bekannten Eigenschaften, Befehle wie bei einem FiFo.               *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
-(* Version : 0.04                                                             *)
+(* Support     : www.Corpsman.de                                              *)
 (*                                                                            *)
-(* Historie : 0.01 - initialversion                                           *)
-(*            0.02 - Speed up durch entfernen Schleife in Push                *)
-(*                   Bugfix Verlust von Daten beim Push                       *)
-(*            0.03 - property count                                           *)
-(*            0.04 - TFifo thread Safe gemacht                                *)
+(* Description : Simulation einer FIFO in FPC.                                *)
+(*               All die Bekannten Eigenschaften, Befehle wie bei einem FiFo. *)
 (*                                                                            *)
-(* Support : www.Corpsman.de                                                  *)
+(* License     : See the file license.md, located under:                      *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
 (*                                                                            *)
-(* Allgemeines : Keine Garantie, für schäden an Software oder Hardware.       *)
-(*               diese Unit kann nur auf eigene Verantwortung genutzt werden. *)
-(*               Und ist somit Freeware.                                      *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(* Warranty    : There is no warranty, neither in correctness of the          *)
+(*               implementation, nor anything other that could happen         *)
+(*               or go wrong, use at your own risk.                           *)
+(*                                                                            *)
+(* Known Issues: none                                                         *)
+(*                                                                            *)
+(* History     : 0.01 - Initial version                                       *)
+(*               0.02 - Speed up durch entfernen Schleife in Push             *)
+(*                      Bugfix Verlust von Daten beim Push                    *)
+(*               0.03 - property count                                        *)
+(*               0.04 - TFifo thread Safe gemacht                             *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -306,4 +316,8 @@ Begin
 End;
 
 End.
+
+
+
+
 
