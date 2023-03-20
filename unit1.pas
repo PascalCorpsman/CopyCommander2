@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.09                                                         *)
+(* Version     : 0.10                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -74,7 +74,7 @@
 (*                      es werden die letzten 10 [maxDirs=10] gemerkt und in  *)
 (*                        einer Drop-Down-Liste angeboten,                    *)
 (*                      Die Liste kann via contextmenü gelöscht werden        *)
-(*               0.10 =                                                       *)
+(*               0.10 = TODO im STRG+S Dialog implementiert                   *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -528,7 +528,10 @@ End;
 
 Procedure TForm1.FormCreate(Sender: TObject);
 Begin
-  Caption := 'Copycommander2 ver. 0.09';
+  (*
+   * Historie : Siehe ganz oben
+   *)
+  Caption := 'Copycommander2 ver. 0.10';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt

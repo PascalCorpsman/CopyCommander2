@@ -294,7 +294,6 @@ Begin
     exit;
   End;
   UpdatePanelInfo;
-
 End;
 
 Procedure TForm3.MenuItem1Click(Sender: TObject);
@@ -325,17 +324,69 @@ Begin
 End;
 
 Procedure TForm3.MenuItem4Click(Sender: TObject);
+Var
+  j, i, k: Integer;
+  sel: TGridRect;
+  fn: String;
 Begin
   // Del Left
-  // TODO: Implementieren
-  showmessage('Todo');
+  For i := StringGrid1.SelectedRangeCount - 1 Downto 0 Do Begin
+    sel := StringGrid1.SelectedRange[i];
+    For j := sel.Bottom Downto sel.Top Do Begin
+      fn := fLeftRootDirectory + fListViewData[j - 1].Left;
+      If DeleteFileUTF8(fn) Then Begin
+        fListViewData[j - 1].Left := '';
+        // Rechts ists auch Leer -> Die Zeile kann Weg
+        If fListViewData[j - 1].Right = '' Then Begin
+          StringGrid1.DeleteRow(j);
+          For k := j - 1 To high(fListViewData) - 1 Do Begin
+            fListViewData[k] := fListViewData[k + 1];
+          End;
+          setlength(fListViewData, high(fListViewData));
+        End
+        Else Begin
+          // Rechts gibt es -> die Zeile bleibt da
+          StringGrid1.Cells[0, j] := '';
+          StringGrid1.Cells[1, j] := inttostr(IndexRightToLeft);
+        End;
+      End;
+    End;
+  End;
+  StringGrid1.ClearSelections;
+  UpdatePanelInfo;
 End;
 
 Procedure TForm3.MenuItem5Click(Sender: TObject);
+Var
+  j, i, k: Integer;
+  sel: TGridRect;
+  fn: String;
 Begin
   // Del Right
-  // TODO: Implementieren
-  showmessage('Todo');
+  For i := StringGrid1.SelectedRangeCount - 1 Downto 0 Do Begin
+    sel := StringGrid1.SelectedRange[i];
+    For j := sel.Bottom Downto sel.Top Do Begin
+      fn := fRightRootDirectory + fListViewData[j - 1].Right;
+      If DeleteFileUTF8(fn) Then Begin
+        fListViewData[j - 1].Right := '';
+        // Links ists auch Leer -> Die Zeile kann Weg
+        If fListViewData[j - 1].Left = '' Then Begin
+          StringGrid1.DeleteRow(j);
+          For k := j - 1 To high(fListViewData) - 1 Do Begin
+            fListViewData[k] := fListViewData[k + 1];
+          End;
+          setlength(fListViewData, high(fListViewData));
+        End
+        Else Begin
+          // Links gibt es -> die Zeile bleibt da
+          StringGrid1.Cells[2, j] := '';
+          StringGrid1.Cells[1, j] := inttostr(IndexLeftToRight);
+        End;
+      End;
+    End;
+  End;
+  StringGrid1.ClearSelections;
+  UpdatePanelInfo;
 End;
 
 Procedure TForm3.MenuItem7Click(Sender: TObject);
