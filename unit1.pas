@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.10                                                         *)
+(* Version     : 0.11                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -75,6 +75,8 @@
 (*                        einer Drop-Down-Liste angeboten,                    *)
 (*                      Die Liste kann via contextmenü gelöscht werden        *)
 (*               0.10 = TODO im STRG+S Dialog implementiert                   *)
+(*               0.11 = FIX: Combobox text was not updated, when history was  *)
+(*                           full -> result in empty directory view           *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -325,15 +327,17 @@ Const
 
 Procedure UpdateComboboxHistory(cb: TComboBox; maxCount: integer);
 Var
-  directory: String;
+  tmp, directory: String;
 Begin
-  directory := IncludeTrailingPathDelimiter(cb.Text);
+  tmp := cb.Text;
+  directory := IncludeTrailingPathDelimiter(tmp);
   // DropDownListe füllen
   If (directory <> '') And (cb.Items.IndexOf(directory) < 0) Then // nur wenn noch nicht in Liste
     cb.Items.Insert(0, directory);
   // ggf Anzahl in Liste begrenzen
   If cb.Items.Count > MaxCount Then
     cb.Items.Delete(MaxCount);
+  cb.Text := tmp;
 End;
 
 (*
@@ -531,7 +535,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.10';
+  Caption := 'Copycommander2 ver. 0.11';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
