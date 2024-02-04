@@ -2,7 +2,7 @@ CopyCommander is a tool for windows/linux to use queued file-copy/moves from one
 
 ![Overview](images/Overview.png)
 
-A manual can be found [here](how_to_use.txt)
+A manual can be found [here](src/how_to_use.txt)
 
 If you do not have Lazarus you can directly download a precompiled binary from:
 
