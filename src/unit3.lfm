@@ -114,5 +114,24 @@ object Form3: TForm3
       ImageIndex = 17
       OnClick = MenuItem5Click
     end
+    object Separator1: TMenuItem
+      Caption = '-'
+    end
+    object MenuItem11: TMenuItem
+      Caption = 'Reload [CTRL + R]'
+      ImageIndex = 5
+      OnClick = MenuItem11Click
+    end
+    object MenuItem10: TMenuItem
+      Caption = 'Save diff as .csv'
+      ImageIndex = 20
+      OnClick = MenuItem10Click
+    end
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.csv'
+    Filter = 'Comma separated file|*.csv|All|*.*'
+    Left = 184
+    Top = 320
   end
 end

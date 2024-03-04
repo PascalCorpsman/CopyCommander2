@@ -35,6 +35,8 @@ Type
     Button1: TButton;
     Button2: TButton;
     MenuItem1: TMenuItem;
+    MenuItem10: TMenuItem;
+    MenuItem11: TMenuItem;
     MenuItem2: TMenuItem;
     MenuItem3: TMenuItem;
     MenuItem4: TMenuItem;
@@ -44,6 +46,8 @@ Type
     MenuItem8: TMenuItem;
     MenuItem9: TMenuItem;
     PopupMenu1: TPopupMenu;
+    SaveDialog1: TSaveDialog;
+    Separator1: TMenuItem;
     StatusBar1: TStatusBar;
     StringGrid1: TStringGrid;
     Procedure Button1Click(Sender: TObject);
@@ -51,6 +55,8 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure FormResize(Sender: TObject);
     Procedure FormShow(Sender: TObject);
+    Procedure MenuItem10Click(Sender: TObject);
+    Procedure MenuItem11Click(Sender: TObject);
     Procedure MenuItem1Click(Sender: TObject);
     Procedure MenuItem2Click(Sender: TObject);
     Procedure MenuItem3Click(Sender: TObject);
@@ -247,6 +253,49 @@ Begin
   End;
 End;
 
+Procedure TForm3.MenuItem10Click(Sender: TObject);
+Var
+  i: integer;
+Begin
+  // Den Diff als .csv Speichern
+  If SaveDialog1.Execute Then Begin
+    // Indexe in "hübsch" umschreiben
+    For i := 1 To StringGrid1.RowCount - 1 Do Begin
+      Case StringGrid1.Cells[1, i] Of
+        chr(IndexDoNothing + ord('0')): Begin
+            StringGrid1.Cells[1, i] := 'ignore';
+          End;
+        chr(IndexLeftToRight + ord('0')): Begin
+            StringGrid1.Cells[1, i] := '-->';
+          End;
+        chr(IndexRightToLeft + ord('0')): Begin
+            StringGrid1.Cells[1, i] := '<--';
+          End;
+      End;
+    End;
+    StringGrid1.SaveToCSVFile(SaveDialog1.FileName, ';', true, true);
+    For i := 1 To StringGrid1.RowCount - 1 Do Begin
+      Case StringGrid1.Cells[1, i] Of
+        'ignore': Begin
+            StringGrid1.Cells[1, i] := chr(IndexDoNothing + ord('0'));
+          End;
+        '-->': Begin
+            StringGrid1.Cells[1, i] := chr(IndexLeftToRight + ord('0'));
+          End;
+        '<--': Begin
+            StringGrid1.Cells[1, i] := chr(IndexRightToLeft + ord('0'));
+          End;
+      End;
+    End;
+  End;
+End;
+
+Procedure TForm3.MenuItem11Click(Sender: TObject);
+Begin
+  // Reload
+  LoadDirectories(fLeftRootDirectory, fRightRootDirectory);
+End;
+
 Procedure TForm3.StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
   aRect: TRect; aState: TGridDrawState);
 Begin
@@ -278,6 +327,11 @@ Begin
     r.Right := 2;
     r.Bottom := StringGrid1.RowCount - 1;
     StringGrid1.Selection := r;
+    exit;
+  End;
+  // Reload
+  If (ssCtrl In Shift) And (key = ord('R')) Then Begin
+    LoadDirectories(fLeftRootDirectory, fRightRootDirectory);
     exit;
   End;
   If key = ord('N') Then Begin

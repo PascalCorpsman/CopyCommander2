@@ -77,6 +77,9 @@
 (*               0.10 = TODO im STRG+S Dialog implementiert                   *)
 (*               0.11 = FIX: Combobox text was not updated, when history was  *)
 (*                           full -> result in empty directory view           *)
+(*                      CTRL + R = Reload directory                           *)
+(*                      CTRL + Tab = switch left / right view                 *)
+(*                      Diff dialog can export diff as .csv                   *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -905,6 +908,14 @@ Begin
     DiffViewer();
     exit;
   End;
+  // Swap Left Right
+  If (ssCtrl In shift) And (key = VK_TAB) Then Begin
+    s := fLeftView.aDirectory;
+    LoadDir(fRightView.aDirectory, fLeftView);
+    LoadDir(s, fRightView);
+    exit;
+  End;
+
   (*
    * Initialisieren aller Pointer damit es den OnKeyDown Code nur 1 mal gibt.
    *)
@@ -937,6 +948,12 @@ Begin
     For i := 1 To aListview.Items.Count - 1 Do Begin
       aListview.Items[i].Selected := true;
     End;
+    exit;
+  End;
+  // STRG + R = Verzeichnis neu Laden
+  If (ssCtrl In shift) And (key = ord('R')) Then Begin
+    aView^.ComboBox.Text := '';
+    LoadDir(aView^.aDirectory, aView^);
     exit;
   End;
   // Selektieren via Einfügen
@@ -1140,12 +1157,11 @@ End;
 
 Procedure TForm1.MenuItem12Click(Sender: TObject);
 Var
-  s: String;
+  key: word;
 Begin
   // Swap Left Right
-  s := fLeftView.aDirectory;
-  LoadDir(fRightView.aDirectory, fLeftView);
-  LoadDir(s, fRightView);
+  key := VK_TAB;
+  ListView1KeyDown(Nil, key, [ssCtrl]);
 End;
 
 Procedure TForm1.MenuItem14Click(Sender: TObject);
@@ -1300,10 +1316,12 @@ Begin
 End;
 
 Procedure TForm1.MenuItem5Click(Sender: TObject);
+Var
+  key: word;
 Begin
   // Reload Directory
-  fLeftView.ComboBox.Text := '';
-  LoadDir(fLeftView.aDirectory, fLeftView);
+  key := ord('R');
+  ListView1KeyDown(ListView1, key, [ssCtrl]);
 End;
 
 Procedure TForm1.MenuItem6Click(Sender: TObject);
@@ -1316,10 +1334,12 @@ Begin
 End;
 
 Procedure TForm1.MenuItem7Click(Sender: TObject);
+Var
+  key: word;
 Begin
   // Reload Directory
-  fRightView.ComboBox.Text := '';
-  LoadDir(fRightView.aDirectory, fRightView);
+  key := ord('R');
+  ListView1KeyDown(ListView2, key, [ssCtrl]);
 End;
 
 Procedure TForm1.MenuItem8Click(Sender: TObject);
