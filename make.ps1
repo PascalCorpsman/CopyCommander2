@@ -57,9 +57,9 @@ Function PrivLazBuild {
         Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule', 'update', '--recursive', '--init'
         Start-Process -Wait -FilePath 'git' -ArgumentList 'submodule', 'update', '--recursive', '--remote'
         Get-Content -Path 'use\components.txt' | ForEach-Object {
-            If (-not (Start-Process -ea 'continue' -Wait -FilePath 'lazbuild' -ArgumentList '--verbose-pkgsearch', $_)) -and
+            If ((-not (Start-Process -ea 'continue' -Wait -FilePath 'lazbuild' -ArgumentList '--verbose-pkgsearch', $_)) -and
                 (-not (Start-Process -ea 'continue' -Wait -FilePath 'lazbuild' -ArgumentList '--add-package', $_)) -and
-                (-not (Test-Path -Path 'use\components.txt')) {
+                (-not (Test-Path -Path 'use\components.txt'))) {
                     $OutFile = PrivWget "https://packages.lazarus-ide.org/$($_).zip"
                     Expand-Archive -Path $OutFile -DestinationPath "use\$($_)" -Force
                     Remove-Item $OutFile
