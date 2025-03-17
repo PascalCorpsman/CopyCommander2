@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.11                                                         *)
+(* Version     : 0.12                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -80,6 +80,7 @@
 (*                      CTRL + R = Reload directory                           *)
 (*                      CTRL + Tab = switch left / right view                 *)
 (*                      Diff dialog can export diff as .csv                   *)
+(*               0.12 = FIX: comming up the directory structure was broken    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -512,18 +513,34 @@ Var
   Idx: Integer;
 Begin
   If aindex >= Listview.Items.Count Then exit;
-  If Not assigned(Listview.TopItem) Then exit;
-  Listview.Items[aIndex].MakeVisible(False);
+  Listview.BeginUpdate;
   Listview.ClearSelection;
-  Idx := Listview.TopItem.Index + (Listview.VisibleRowCount Div 2);
-  If aIndex <> Idx Then
-    Idx := aIndex + (aIndex - Idx);
-  If (Idx < 0) Then
-    Idx := 0;
-  If (Idx >= Listview.Items.Count) Then
-    Idx := Listview.Items.Count - 1;
-  Listview.Items[Idx].MakeVisible(False);
-  Listview.Items[aIndex].Selected := true;
+
+  // So hinscrollen, dass man das man den aIndex uberhaupt sehen kann
+  Listview.Items[aIndex].MakeVisible(False);
+
+  // Der Versuch den ausgewählten Eintrag ungefähr "mittig" in der Listview an zu zeigen
+  If assigned(Listview.TopItem) Then Begin
+    Idx := Listview.TopItem.Index + (Listview.VisibleRowCount Div 2);
+    If aIndex <> Idx Then
+      Idx := aIndex + (aIndex - Idx);
+    If (Idx < 0) Then
+      Idx := 0;
+    If (Idx >= Listview.Items.Count) Then
+      Idx := Listview.Items.Count - 1;
+    Listview.Items[Idx].MakeVisible(False);
+  End;
+
+  // Der Versuch den Eintrag auch so zu selektiern dass dieser
+  // 1. Blau hinterlegt ist
+  // 2. Wenn der User die Pfeiltasten verwendet von diesem auch weiter "navigiert" wird
+  Listview.Items[aIndex].Selected := true; // Das macht den Eintrag "blau"
+  // Den Eintrag tatsächlich auch Anwählen
+  Listview.ItemIndex := aIndex;
+  Listview.Selected := Listview.Items[aIndex];
+  Listview.ItemFocused := Listview.Items[aIndex];
+
+  Listview.EndUpdate;
 End;
 
 Procedure Nop();
@@ -538,7 +555,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.11';
+  Caption := 'Copycommander2 ver. 0.12';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
@@ -1093,7 +1110,7 @@ Begin
       Else Begin
         // Ein Ordner Tiefer
         LoadDir(IncludeTrailingBackslash(aView^.aDirectory) + aListview.Selected.caption, aView^);
-        ListViewSelectItemIndex(aListview, 0);
+        // ListViewSelectItemIndex(aListview, 0); -- Wird schon durch Load dir gemacht
         aListview.SetFocus;
       End;
     End

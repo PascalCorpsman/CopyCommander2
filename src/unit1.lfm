@@ -9,20 +9,20 @@ object Form1: TForm1
   ClientWidth = 777
   Constraints.MinHeight = 200
   Constraints.MinWidth = 400
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
   OnActivate = FormActivate
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDropFiles = FormDropFiles
-  Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object PairSplitter1: TPairSplitter
     Left = 50
     Height = 400
     Top = 50
     Width = 400
-    OnResize = PairSplitter1Resize
     Position = 200
+    OnResize = PairSplitter1Resize
     object PairSplitterSide1: TPairSplitterSide
       Cursor = crArrow
       Left = 0
@@ -45,18 +45,18 @@ object Form1: TForm1
         OnResize = Panel1Resize
         object cbDirLeft: TComboBox
           Left = 12
-          Height = 23
-          Top = 44
+          Height = 28
+          Top = 39
           Width = 148
           Anchors = [akLeft, akRight, akBottom]
-          ItemHeight = 15
+          ItemHeight = 0
+          PopupMenu = PopupMenu3
+          TabOrder = 0
+          TextHint = 'Directory left'
           OnDblClick = cbDirLeftDblClick
           OnKeyDown = cbDirLeftKeyDown
           OnKeyPress = cbDirLeftKeyPress
           OnSelect = cbDirLeftSelect
-          PopupMenu = PopupMenu3
-          TabOrder = 0
-          TextHint = 'Directory left'
         end
         object btnDirLeft: TSpeedButton
           Left = 164
@@ -71,7 +71,7 @@ object Form1: TForm1
       end
       object ListView1: TListView
         Left = 0
-        Height = 302
+        Height = 301
         Top = 75
         Width = 200
         Align = alClient
@@ -89,7 +89,6 @@ object Form1: TForm1
             AutoSize = True
             Caption = 'Size'
             MinWidth = 50
-            Width = 35
           end>
         HideSelection = False
         MultiSelect = True
@@ -107,8 +106,8 @@ object Form1: TForm1
       end
       object StatusBar1: TStatusBar
         Left = 0
-        Height = 23
-        Top = 377
+        Height = 24
+        Top = 376
         Width = 200
         Panels = <        
           item
@@ -139,18 +138,18 @@ object Form1: TForm1
         OnResize = Panel2Resize
         object cbDirRight: TComboBox
           Left = 8
-          Height = 23
-          Top = 44
+          Height = 28
+          Top = 39
           Width = 148
           Anchors = [akLeft, akRight, akBottom]
-          ItemHeight = 15
+          ItemHeight = 0
+          PopupMenu = PopupMenu4
+          TabOrder = 0
+          TextHint = 'Directory right'
           OnDblClick = cbDirRightDblClick
           OnKeyDown = cbDirRightKeyDown
           OnKeyPress = cbDirRightKeyPress
           OnSelect = cbDirRightSelect
-          PopupMenu = PopupMenu4
-          TabOrder = 0
-          TextHint = 'Directory right'
         end
         object btnDirRight: TSpeedButton
           Left = 160
@@ -165,8 +164,8 @@ object Form1: TForm1
       end
       object StatusBar2: TStatusBar
         Left = 0
-        Height = 23
-        Top = 377
+        Height = 24
+        Top = 376
         Width = 195
         Panels = <        
           item
@@ -176,7 +175,7 @@ object Form1: TForm1
       end
       object ListView2: TListView
         Left = 0
-        Height = 302
+        Height = 301
         Top = 75
         Width = 195
         Align = alClient
@@ -194,7 +193,6 @@ object Form1: TForm1
             AutoSize = True
             Caption = 'Size'
             MinWidth = 50
-            Width = 35
           end>
         HideSelection = False
         MultiSelect = True
