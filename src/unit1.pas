@@ -81,6 +81,8 @@
 (*                      CTRL + Tab = switch left / right view                 *)
 (*                      Diff dialog can export diff as .csv                   *)
 (*               0.12 = FIX: comming up the directory structure was broken    *)
+(*                      ADD: swap size / ext for folders                      *)
+(*                      FIX: some gui glitches                                *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -254,7 +256,6 @@ Type
     Procedure CreateShortCutL; // Create shortcut button on left panel
     Procedure CopyShortcut;
     Procedure DeleteShortcut;
-
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
     Procedure LoadDir(Dir: String; Var View: TView);
@@ -323,6 +324,8 @@ Const
 
   maxDirs = 10; // Maximale Anzahl Pfade in der ComboBox
 
+  SubItemIndexEXT = 0;
+  SubItemIndexSize = 1;
 
   (*
    * Fügt den Aktuellen Wert der in der Combobox steht in die Dropdownliste hinzu (wenn noch nicht enthalten)
@@ -387,7 +390,7 @@ Begin
         For i := 1 To listview.Items.count - 1 Do Begin
           item := listview.Items[i];
           //          s := item.SubItems[1];
-          If item.SubItems[1] <> '<DIR>' Then Begin
+          If item.SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
             k := i - 1;
             break;
           End;
@@ -448,7 +451,7 @@ Begin
         For i := 1 To listview.Items.count - 1 Do Begin
           item := listview.Items[i];
           //          s := item.SubItems[1];
-          If item.SubItems[1] <> '<DIR>' Then Begin
+          If item.SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
             k := i - 1;
             break;
           End;
@@ -560,7 +563,6 @@ Begin
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
    * Noch Offen:
-   *             -del dir im Synchronize Dialog
    *             -Kontext menü "show Size" -> Für Verzeichnisse
    *)
   finiFile := TIniFile.Create(GetAppConfigFileUTF8(false));
@@ -913,7 +915,7 @@ Procedure TForm1.ListView1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Var
   i, j: Integer;
-  u, t, s: String;
+  u, t, s, w: String;
   aListview, oListview: TListView;
   aView, oView: PView; // !! Achtung, hier muss mit den Pointern gearbeitet werden, sonst kann LoadDir die View nicht beschreiben !
 Begin
@@ -932,7 +934,6 @@ Begin
     LoadDir(s, fRightView);
     exit;
   End;
-
   (*
    * Initialisieren aller Pointer damit es den OnKeyDown Code nur 1 mal gibt.
    *)
@@ -996,17 +997,18 @@ Begin
   End;
   // F2 = Rename
   If key = VK_F2 Then Begin
+    w := '';
     For i := 0 To aListview.Items.Count - 1 Do Begin
       If aListview.Items[i].Selected Then Begin
         aListview.Items[i].Selected := false;
         If aListview.Items[i].Caption = '[..]' Then Continue;
         s := aListview.Items[i].caption;
-        If pos('(', aListview.Items[i].SubItems[0]) = 1 Then Begin
+        If pos('(', aListview.Items[i].SubItems[SubItemIndexSize]) = 1 Then Begin
           // Hier wird ein Verzeichnis umbenannt -> Muss nichts weiter gemacht werden.
         End
         Else Begin
           // Umbenennen einer Datei
-          s := s + '.' + aListview.Items[i].SubItems[0];
+          s := s + '.' + aListview.Items[i].SubItems[SubItemIndexEXT];
         End;
         t := InputBox('Rename', 'Please enter name', s);
         If t <> s Then Begin // Umbenennen von s nach t
@@ -1014,26 +1016,7 @@ Begin
            * Anscheinend gibt es kein RenameDirectory das geht auch so ..
            *)
           If RenameFileUTF8(aView^.aDirectory + s, aView^.aDirectory + t) Then Begin
-            // Das Verzeichniss gibt es in der Anderen Ansicht auch -> Dort suchen und ebenfalls umbenennen
-            If oview^.aDirectory = aView^.aDirectory Then Begin
-              For j := 0 To oListview.Items.Count - 1 Do Begin
-                If (oListview.Items[j].Caption = aListview.Items[i].caption) And
-                  (oListview.Items[j].SubItems[0] = aListview.Items[i].SubItems[0]) Then Begin
-                  If pos('(', aListview.Items[i].SubItems[0]) = 1 Then Begin
-                    // Hier wird ein Verzeichnis umbenannt
-                    oListview.Items[j].caption := t;
-                  End
-                  Else Begin
-                    // Umbenennen einer Datei
-                    oListview.Items[j].caption := ExtractFileNameWithoutExt(t);
-                    u := ExtractFileExt(t);
-                    oListview.Items[j].SubItems[0] := copy(u, 2, length(u));
-                  End;
-                  break;
-                End;
-              End;
-            End;
-            If pos('(', aListview.Items[i].SubItems[0]) = 1 Then Begin
+            If pos('(', aListview.Items[i].SubItems[SubItemIndexSize]) = 1 Then Begin
               // Hier wird ein Verzeichnis umbenannt
               aListview.Items[i].caption := t;
             End
@@ -1041,8 +1024,33 @@ Begin
               // Umbenennen einer Datei
               aListview.Items[i].caption := ExtractFileNameWithoutExt(t);
               u := ExtractFileExt(t);
-              aListview.Items[i].SubItems[0] := copy(u, 2, length(u));
+              aListview.Items[i].SubItems[SubItemIndexEXT] := copy(u, 2, length(u));
             End;
+            // Wir merken uns den letzten umbenannten Eintrag und selektieren diesen am "ende"
+            w := aListview.Items[i].caption;
+          End;
+        End;
+      End;
+    End;
+    // Es wurde etwas umbenannt ->  Die Verzeichnisse müssen neu geladen werden
+    If w <> '' Then Begin
+      // Aktualisieren der "bearbeitenden" Ansicht
+      LoadDir(aView^.aDirectory, aView^);
+      For i := 0 To aListview.Items.Count - 1 Do Begin
+        If aListview.Items[i].Caption = w Then Begin
+          ListViewSelectItemIndex(aListview, i);
+          break;
+        End;
+      End;
+      aView^.ListView.SetFocus; // Da ein anderer Dialog aufgegangen ist muss das Listview wieder den Fokus bekommen
+      If oview^.aDirectory = aView^.aDirectory Then Begin // Die Andere Ansicht muss auch neu geladen werden
+        // Aktualisieren der "anderen" Ansicht
+        w := oListview.ItemFocused.Caption;
+        LoadDir(oView^.aDirectory, oView^);
+        For i := 0 To oListview.Items.Count - 1 Do Begin
+          If oListview.Items[i].Caption = w Then Begin
+            ListViewSelectItemIndex(oListview, i);
+            break;
           End;
         End;
       End;
@@ -1067,6 +1075,10 @@ Begin
             break;
           End;
         End;
+        // Wenn Beide seiten das gleiche anzeigen, dann sollte die Andere Ansicht natürlich auch neu geladen werden ..
+        If oView^.aDirectory = aView^.aDirectory Then Begin
+          LoadDir(oView^.aDirectory, oView^);
+        End;
       End
       Else Begin
         showmessage('Error, unable to create: ' + s);
@@ -1083,7 +1095,7 @@ Begin
   // Navigation mittels Return
   If key = VK_RETURN Then Begin
     // Ein Verzeichnis wird geöffnet
-    If aListview.Selected.SubItems[1] = '<DIR>' Then Begin
+    If aListview.Selected.SubItems[SubItemIndexEXT] = '<DIR>' Then Begin
       // Ein Ordner Zurück
       If aListview.Selected.caption = '[..]' Then Begin
         s := ExcludeTrailingPathDelimiter(aView^.aDirectory);
@@ -1116,7 +1128,7 @@ Begin
     End
     Else Begin
 {$IFDEF Windows}
-      If aListview.Selected.SubItems[1] = '<DRIVE>' Then Begin
+      If aListview.Selected.SubItems[SubItemIndexEXT] = '<DRIVE>' Then Begin
         LoadDir(aListview.Selected.Caption, aView^);
         ListViewSelectItemIndex(aListview, 0);
         aListview.SetFocus;
@@ -1404,12 +1416,12 @@ End;
 
 Procedure TForm1.ListView1Resize(Sender: TObject);
 Begin
-  ListView1.Columns[0].Width := ListView1.Width - 150;
+  ListView1.Columns[0].Width := ListView1.Width - ListView1.Columns[1].Width - ListView1.Columns[2].Width - Scale96ToForm(50);
 End;
 
 Procedure TForm1.ListView2Resize(Sender: TObject);
 Begin
-  ListView2.Columns[0].Width := ListView1.Width - 150;
+  ListView2.Columns[0].Width := ListView2.Width - ListView2.Columns[1].Width - ListView2.Columns[2].Width - Scale96ToForm(50);
 End;
 
 Procedure TForm1.DiffViewer;
@@ -1443,7 +1455,7 @@ Begin
   job := TJob.Create;
   job.Source := IncludeTrailingPathDelimiter(SourceDir) + Item.Caption;
   job.Dest := IncludeTrailingPathDelimiter(DestDir);
-  If item.SubItems[1] = '<DIR>' Then Begin
+  If item.SubItems[SubItemIndexEXT] = '<DIR>' Then Begin
     Case JobType Of
       jsCopy: job.JobType := jtCopyDir;
       jsMove: job.JobType := jtMoveDir;
@@ -1458,9 +1470,9 @@ Begin
     End;
     job.Dest := job.Dest + Item.Caption;
     // Wenn die Datei keine Endung hat auch nichts anhängen.
-    If Item.SubItems[0] <> '' Then Begin
-      job.Source := job.Source + '.' + Item.SubItems[0];
-      job.Dest := job.Dest + '.' + Item.SubItems[0];
+    If Item.SubItems[SubItemIndexEXT] <> '' Then Begin
+      job.Source := job.Source + '.' + Item.SubItems[SubItemIndexEXT];
+      job.Dest := job.Dest + '.' + Item.SubItems[SubItemIndexEXT];
     End;
   End;
   AddJob(job);
@@ -1790,6 +1802,7 @@ Begin
     View.aDirectory := Dir;
     If Not DirectoryExistsUTF8(Dir) Then Begin
       view.StatusBar.Panels[0].Text := inttostr(DirectoryCount) + ' Folders, ' + inttostr(FileCount) + ' Files (' + FileSizeToString(TotalFileSize) + ')';
+      showmessage('Warning: "' + dir + '" does not exist.');
       exit; //-- Da ist was Komisch, das ignorieren wir mal lieber
     End;
     UpdateComboboxHistory(View.ComboBox, maxDirs);
@@ -1798,8 +1811,8 @@ Begin
     item := View.ListView.items.add;
     item.Caption := '[..]';
     item.ImageIndex := ImageIndexBack;
-    item.SubItems.add('');
     item.SubItems.add('<DIR>');
+    item.SubItems.add('');
     // Alle Verzeichnisse
     If FindFirstutf8(dir + '*', faAnyFile, SR) = 0 Then Begin
       Repeat
@@ -1808,8 +1821,8 @@ Begin
             item := view.listview.Items.Add;
             item.Caption := sr.Name;
             item.ImageIndex := ImageIndexFolder;
-            item.SubItems.add(format('(%d)', [GetElemtcount(dir + sr.Name)]));
             item.SubItems.add('<DIR>');
+            item.SubItems.add(format('(%d)', [GetElemtcount(dir + sr.Name)]));
             inc(DirectoryCount);
           End;
         End
@@ -1851,7 +1864,7 @@ Begin
     // Sortieren der Listview
     StartOfFiles := 1;
     For i := 1 To View.ListView.items.Count - 1 Do Begin
-      If View.ListView.items[i].SubItems[1] <> '<DIR>' Then Begin
+      If View.ListView.items[i].SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
         StartOfFiles := i;
         break;
       End;
@@ -1873,8 +1886,8 @@ Begin
       item := view.listview.Items.Add;
       item.Caption := sl[i];
       item.ImageIndex := ImageIndexHDD;
-      item.SubItems.add('');
       item.SubItems.add('<DRIVE>');
+      item.SubItems.add('');
       inc(DirectoryCount);
     End;
     // Ein paar User Infos ausgeben.
