@@ -603,6 +603,8 @@ Begin
   If ListViewItemsCount = 0 Then Begin
     result := 'Folders are equal.';
   End;
+  // Auf jeden Fall ein "Neu" erzeugen der Liste erzwingen (siehe FormShow)
+  StringGrid1.RowCount := ListViewItemsCount + 1;
 End;
 
 End.

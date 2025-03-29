@@ -83,6 +83,8 @@
 (*               0.12 = FIX: comming up the directory structure was broken    *)
 (*                      ADD: swap size / ext for folders                      *)
 (*                      FIX: some gui glitches                                *)
+(*                      FIX: if filediff had exact 5 files, diff view was not *)
+(*                           refreshed.                                       *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)

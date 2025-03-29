@@ -6,11 +6,11 @@ object Form3: TForm3
   Caption = 'Form3'
   ClientHeight = 485
   ClientWidth = 632
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
   OnCreate = FormCreate
   OnResize = FormResize
   OnShow = FormShow
-  Position = poScreenCenter
-  LCLVersion = '2.3.0.0'
   object Button1: TButton
     Left = 548
     Height = 25
@@ -18,8 +18,8 @@ object Form3: TForm3
     Width = 75
     Anchors = [akRight, akBottom]
     Caption = '&OK'
-    OnClick = Button1Click
     TabOrder = 0
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 8
@@ -28,13 +28,13 @@ object Form3: TForm3
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = '&Cancel'
-    OnClick = Button2Click
     TabOrder = 1
+    OnClick = Button2Click
   end
   object StatusBar1: TStatusBar
     Left = 8
-    Height = 23
-    Top = 416
+    Height = 24
+    Top = 415
     Width = 615
     Align = alNone
     Anchors = [akLeft, akRight, akBottom]
