@@ -185,7 +185,7 @@ End;
 Procedure TForm3.Button1Click(Sender: TObject);
 Var
   i: integer;
-  sFile: String;
+  dFile, sFile: String;
   job: TJob;
 Begin
   // OK -> Generieren der Jobs und Los gehts ;)
@@ -199,6 +199,13 @@ Begin
             job.JobType := jtCopyFile;
             job.Source := sFile;
             job.Dest := fRightRootDirectory + fListViewData[i - 1].Left;
+          End
+          Else Begin
+            // Der User will dass die Zieldatei gelöscht wird, weil die Quelldatei nicht existiert
+            dFile := fRightRootDirectory + fListViewData[i - 1].Right;
+            If Not DeleteFileUTF8(dFile) Then Begin
+              Showmessage('Unable to delete: ' + dFile);
+            End;
           End;
         End;
       chr(IndexRightToLeft + ord('0')): Begin
@@ -208,13 +215,20 @@ Begin
             job.JobType := jtCopyFile;
             job.Source := sFile;
             job.Dest := fLeftRootDirectory + fListViewData[i - 1].Right;
+          End
+          Else Begin
+            // Der User will dass die Zieldatei gelöscht wird, weil die Quelldatei nicht existiert
+            dFile := fLeftRootDirectory + fListViewData[i - 1].Left;
+            If Not DeleteFileUTF8(dFile) Then Begin
+              Showmessage('Unable to delete: ' + dFile);
+            End;
           End;
         End;
     End;
     If assigned(job) Then Begin
       (*
        * Da der User Explizit gewünscht hat hier zu überschreiben, brauchen
-       * wir nicht nachher nicht mehr zu fragen und können die Zieldatei
+       * wir nachher nicht mehr zu fragen und können die Zieldatei
        * jetzt schon löschen
        *)
       If FileExistsUTF8(job.Dest) Then Begin
