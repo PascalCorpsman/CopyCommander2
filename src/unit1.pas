@@ -85,6 +85,9 @@
 (*                      FIX: some gui glitches                                *)
 (*                      FIX: if filediff had exact 5 files, diff view was not *)
 (*                           refreshed.                                       *)
+(*                      ADD: del target file in diff dialog if source file is *)
+(*                           not existing.                                    *)
+(*                      ADD: improve UI on reloading directories              *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -329,10 +332,15 @@ Const
   SubItemIndexEXT = 0;
   SubItemIndexSize = 1;
 
-  (*
-   * Fügt den Aktuellen Wert der in der Combobox steht in die Dropdownliste hinzu (wenn noch nicht enthalten)
-   * und kürzt ggf die Anzahl der Einträge auf maxCount Einträge herunter
-   *)
+Procedure Nop();
+Begin
+
+End;
+
+(*
+ * Fügt den Aktuellen Wert der in der Combobox steht in die Dropdownliste hinzu (wenn noch nicht enthalten)
+ * und kürzt ggf die Anzahl der Einträge auf maxCount Einträge herunter
+ *)
 
 Procedure UpdateComboboxHistory(cb: TComboBox; maxCount: integer);
 Var
@@ -356,7 +364,6 @@ End;
 Function FileTypeToIndex(ext: String): Integer;
 Var
   i: integer;
-
 Begin
   result := ImageIndexUnknownFile; // Alle unbekannten File types bekommen diese Grafik.
   ext := lowercase(ext);
@@ -367,7 +374,6 @@ Begin
     End;
   End;
 End;
-
 
 (*
 Wir machen alles von Hand.
@@ -510,7 +516,7 @@ Begin
 End;
 
 (*
- * Wählt nur den Index Index an (alles andere Ab, aber kein Fokus)
+ * Wählt nur den Index aIndex an (alles andere ab, aber kein Fokus)
  *)
 
 Procedure ListViewSelectItemIndex(Const Listview: TListView; aIndex: integer);
@@ -544,13 +550,23 @@ Begin
   Listview.ItemIndex := aIndex;
   Listview.Selected := Listview.Items[aIndex];
   Listview.ItemFocused := Listview.Items[aIndex];
-
   Listview.EndUpdate;
 End;
 
-Procedure Nop();
-Begin
+(*
+ * Sucht in Listview den eintrag aIndex und wählt diesen aus (aber kein Fokus).
+ *)
 
+Procedure ListViewSelectItem(Const Listview: TListView; aIndex: String);
+Var
+  i: integer;
+Begin
+  For i := 1 To Listview.Items.Count - 1 Do Begin
+    If Listview.Items[i].Caption = aIndex Then Begin
+      ListViewSelectItemIndex(Listview, i);
+      exit;
+    End;
+  End;
 End;
 
 { TForm1 }
@@ -932,8 +948,20 @@ Begin
   // Swap Left Right
   If (ssCtrl In shift) And (key = VK_TAB) Then Begin
     s := fLeftView.aDirectory;
+    u := '';
+    If assigned(fLeftView.ListView.ItemFocused) Then Begin
+      u := fLeftView.ListView.ItemFocused.Caption;
+    End;
+    //  Links mit Rechts neu Laden
+    t := '';
+    If assigned(fRightView.ListView.ItemFocused) Then Begin
+      t := fRightView.ListView.ItemFocused.Caption;
+    End;
     LoadDir(fRightView.aDirectory, fLeftView);
+    If t <> '' Then ListViewSelectItem(fLeftView.ListView, t);
+    // Rechts mit Links neu Laden
     LoadDir(s, fRightView);
+    If u <> '' Then ListViewSelectItem(fRightView.ListView, u);
     exit;
   End;
   (*
@@ -972,8 +1000,16 @@ Begin
   End;
   // STRG + R = Verzeichnis neu Laden
   If (ssCtrl In shift) And (key = ord('R')) Then Begin
+    aView^.ListView.BeginUpdate;
+    // Merken des Vorher ausgewählten eintrages, sollte dieser Existieren
+    t := '';
+    If assigned(aView^.ListView.ItemFocused) Then Begin
+      t := aView^.ListView.ItemFocused.Caption;
+    End;
     aView^.ComboBox.Text := '';
     LoadDir(aView^.aDirectory, aView^);
+    If t <> '' Then ListViewSelectItem(aView^.ListView, t);
+    aView^.ListView.EndUpdate;
     exit;
   End;
   // Selektieren via Einfügen
@@ -1112,13 +1148,8 @@ Begin
         End;
 {$ENDIF}
         LoadDir(s, aView^);
-        For i := 1 To aListview.Items.Count - 1 Do Begin
-          If aListview.Items[i].Caption = t Then Begin
-            ListViewSelectItemIndex(aListview, i);
-            aListview.SetFocus;
-            exit;
-          End;
-        End;
+        ListViewSelectItem(aListview, t);
+        aListview.SetFocus;
         exit;
       End
       Else Begin
@@ -1430,6 +1461,7 @@ Procedure TForm1.DiffViewer;
 Var
   s: String;
   b: Boolean;
+  Key: Word;
 Begin
   b := fWorkThread.JobPause;
   If Not b Then Begin
@@ -1445,6 +1477,12 @@ Begin
   End
   Else Begin
     form3.ShowModal;
+    // Da sich der Inhalt beider Verzeichnisse geändert haben könnte,
+    // laden wir diese vorsichtshalber neu
+    key := ord('R');
+    ListView1KeyDown(ListView1, Key, [ssCtrl]);
+    key := ord('R');
+    ListView1KeyDown(ListView2, Key, [ssCtrl]);
   End;
 End;
 

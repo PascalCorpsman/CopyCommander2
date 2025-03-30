@@ -24,7 +24,7 @@ Uses
 
 Type
 
-  tlistViewData = Record
+  tStringgridData = Record
     Left, Right: String;
     Direction: integer;
   End;
@@ -70,7 +70,7 @@ Type
       Shift: TShiftState);
   private
     fLeftRootDirectory, fRightRootDirectory: String;
-    fListViewData: Array Of tlistViewData;
+    fStringgridData: Array Of tStringgridData;
     Procedure UpdatePanelInfo;
 
     Procedure IterThroughAllSelected(aDirection: String);
@@ -193,32 +193,32 @@ Begin
     job := Nil;
     Case StringGrid1.Cells[1, i] Of
       chr(IndexLeftToRight + ord('0')): Begin
-          sFile := fLeftRootDirectory + fListViewData[i - 1].Left;
+          sFile := fLeftRootDirectory + fStringgridData[i - 1].Left;
           If FileExistsUTF8(sFile) Then Begin
             job := TJob.Create;
             job.JobType := jtCopyFile;
             job.Source := sFile;
-            job.Dest := fRightRootDirectory + fListViewData[i - 1].Left;
+            job.Dest := fRightRootDirectory + fStringgridData[i - 1].Left;
           End
           Else Begin
             // Der User will dass die Zieldatei gelöscht wird, weil die Quelldatei nicht existiert
-            dFile := fRightRootDirectory + fListViewData[i - 1].Right;
+            dFile := fRightRootDirectory + fStringgridData[i - 1].Right;
             If Not DeleteFileUTF8(dFile) Then Begin
               Showmessage('Unable to delete: ' + dFile);
             End;
           End;
         End;
       chr(IndexRightToLeft + ord('0')): Begin
-          sFile := fRightRootDirectory + fListViewData[i - 1].Right;
+          sFile := fRightRootDirectory + fStringgridData[i - 1].Right;
           If FileExistsUTF8(sFile) Then Begin
             job := TJob.Create;
             job.JobType := jtCopyFile;
             job.Source := sFile;
-            job.Dest := fLeftRootDirectory + fListViewData[i - 1].Right;
+            job.Dest := fLeftRootDirectory + fStringgridData[i - 1].Right;
           End
           Else Begin
             // Der User will dass die Zieldatei gelöscht wird, weil die Quelldatei nicht existiert
-            dFile := fLeftRootDirectory + fListViewData[i - 1].Left;
+            dFile := fLeftRootDirectory + fStringgridData[i - 1].Left;
             If Not DeleteFileUTF8(dFile) Then Begin
               Showmessage('Unable to delete: ' + dFile);
             End;
@@ -253,14 +253,14 @@ Procedure TForm3.FormShow(Sender: TObject);
 Var
   i: Integer;
 Begin
-  If StringGrid1.RowCount <> length(fListViewData) Then Begin
+  If StringGrid1.RowCount <> length(fStringgridData) Then Begin
     StringGrid1.BeginUpdate;
     StringGrid1.Clear;
-    StringGrid1.RowCount := length(fListViewData) + 1;
-    For i := 0 To high(fListViewData) Do Begin
-      StringGrid1.cells[0, i + 1] := fListViewData[i].Left;
-      StringGrid1.cells[1, i + 1] := inttostr(fListViewData[i].Direction);
-      StringGrid1.cells[2, i + 1] := fListViewData[i].Right;
+    StringGrid1.RowCount := length(fStringgridData) + 1;
+    For i := 0 To high(fStringgridData) Do Begin
+      StringGrid1.cells[0, i + 1] := fStringgridData[i].Left;
+      StringGrid1.cells[1, i + 1] := inttostr(fStringgridData[i].Direction);
+      StringGrid1.cells[2, i + 1] := fStringgridData[i].Right;
     End;
     StringGrid1.EndUpdate(true);
     UpdatePanelInfo;
@@ -401,16 +401,16 @@ Begin
   For i := StringGrid1.SelectedRangeCount - 1 Downto 0 Do Begin
     sel := StringGrid1.SelectedRange[i];
     For j := sel.Bottom Downto sel.Top Do Begin
-      fn := fLeftRootDirectory + fListViewData[j - 1].Left;
+      fn := fLeftRootDirectory + fStringgridData[j - 1].Left;
       If DeleteFileUTF8(fn) Then Begin
-        fListViewData[j - 1].Left := '';
+        fStringgridData[j - 1].Left := '';
         // Rechts ists auch Leer -> Die Zeile kann Weg
-        If fListViewData[j - 1].Right = '' Then Begin
+        If fStringgridData[j - 1].Right = '' Then Begin
           StringGrid1.DeleteRow(j);
-          For k := j - 1 To high(fListViewData) - 1 Do Begin
-            fListViewData[k] := fListViewData[k + 1];
+          For k := j - 1 To high(fStringgridData) - 1 Do Begin
+            fStringgridData[k] := fStringgridData[k + 1];
           End;
-          setlength(fListViewData, high(fListViewData));
+          setlength(fStringgridData, high(fStringgridData));
         End
         Else Begin
           // Rechts gibt es -> die Zeile bleibt da
@@ -434,16 +434,16 @@ Begin
   For i := StringGrid1.SelectedRangeCount - 1 Downto 0 Do Begin
     sel := StringGrid1.SelectedRange[i];
     For j := sel.Bottom Downto sel.Top Do Begin
-      fn := fRightRootDirectory + fListViewData[j - 1].Right;
+      fn := fRightRootDirectory + fStringgridData[j - 1].Right;
       If DeleteFileUTF8(fn) Then Begin
-        fListViewData[j - 1].Right := '';
+        fStringgridData[j - 1].Right := '';
         // Links ists auch Leer -> Die Zeile kann Weg
-        If fListViewData[j - 1].Left = '' Then Begin
+        If fStringgridData[j - 1].Left = '' Then Begin
           StringGrid1.DeleteRow(j);
-          For k := j - 1 To high(fListViewData) - 1 Do Begin
-            fListViewData[k] := fListViewData[k + 1];
+          For k := j - 1 To high(fStringgridData) - 1 Do Begin
+            fStringgridData[k] := fStringgridData[k + 1];
           End;
-          setlength(fListViewData, high(fListViewData));
+          setlength(fStringgridData, high(fStringgridData));
         End
         Else Begin
           // Links gibt es -> die Zeile bleibt da
@@ -462,7 +462,7 @@ Var
   folder, filename: String;
 Begin
   // Openleft Folder
-  filename := fLeftRootDirectory + fListViewData[StringGrid1.Selection.Top].Left;
+  filename := fLeftRootDirectory + fStringgridData[StringGrid1.Selection.Top].Left;
   folder := ExtractFileDir(filename);
   If DirectoryExistsUTF8(folder) And (folder <> '') Then Begin
     OpenURL(folder);
@@ -474,7 +474,7 @@ Var
   folder, filename: String;
 Begin
   // Open Right Folder
-  filename := fLeftRootDirectory + fListViewData[StringGrid1.Selection.Top].Right;
+  filename := fLeftRootDirectory + fStringgridData[StringGrid1.Selection.Top].Right;
   folder := ExtractFileDir(filename);
   If DirectoryExistsUTF8(folder) And (folder <> '') Then Begin
     OpenURL(folder);
@@ -510,16 +510,16 @@ End;
 
 Function TForm3.LoadDirectories(LeftDir, RightDir: String): String;
 Var
-  ListViewItemsCount: Integer;
+  StringGridRowCount: Integer;
 
   Procedure Add(aLeft, ARight: String; aDir: Integer);
   Begin
-    fListViewData[ListViewItemsCount].Left := aLeft;
-    fListViewData[ListViewItemsCount].Right := ARight;
-    fListViewData[ListViewItemsCount].Direction := aDir;
-    inc(ListViewItemsCount);
-    If ListViewItemsCount >= high(fListViewData) Then Begin
-      SetLength(fListViewData, length(fListViewData) + 1024);
+    fStringgridData[StringGridRowCount].Left := aLeft;
+    fStringgridData[StringGridRowCount].Right := ARight;
+    fStringgridData[StringGridRowCount].Direction := aDir;
+    inc(StringGridRowCount);
+    If StringGridRowCount >= high(fStringgridData) Then Begin
+      SetLength(fStringgridData, length(fStringgridData) + 1024);
     End;
   End;
 
@@ -545,8 +545,8 @@ Begin
     result := 'Error, right directory does not exist.';
     exit;
   End;
-  ListViewItemsCount := 0;
-  SetLength(fListViewData, 1024);
+  StringGridRowCount := 0;
+  SetLength(fStringgridData, 1024);
   StringGrid1.Columns[0].Title.Caption := ExcludeTrailingPathDelimiter(LeftDir);
   StringGrid1.Columns[2].Title.Caption := ExcludeTrailingPathDelimiter(RightDir);
   LeftDir := IncludeTrailingPathDelimiter(LeftDir);
@@ -611,14 +611,14 @@ Begin
     Add('', RightFiles.Files[j].FileName, IndexRightToLeft);
     inc(j);
   End;
-  SetLength(fListViewData, ListViewItemsCount);
+  SetLength(fStringgridData, StringGridRowCount);
   SetLength(RightFiles.Files, 0);
   SetLength(LeftFiles.Files, 0);
-  If ListViewItemsCount = 0 Then Begin
+  If StringGridRowCount = 0 Then Begin
     result := 'Folders are equal.';
   End;
   // Auf jeden Fall ein "Neu" erzeugen der Liste erzwingen (siehe FormShow)
-  StringGrid1.RowCount := ListViewItemsCount + 1;
+  StringGrid1.RowCount := StringGridRowCount + 1;
 End;
 
 End.
