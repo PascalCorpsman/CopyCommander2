@@ -85,7 +85,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses LazFileUtils, ucopycommander, Unit1, lclintf, LCLType;
+Uses LazFileUtils, ucopycommander, Unit1, lclintf, LCLType, math;
 
 Const
   IndexDoNothing = 7;
@@ -305,9 +305,16 @@ Begin
 End;
 
 Procedure TForm3.MenuItem11Click(Sender: TObject);
+Var
+  i: Integer;
 Begin
   // Reload
+  i := StringGrid1.Selection.Top;
   LoadDirectories(fLeftRootDirectory, fRightRootDirectory);
+  FormShow(Nil);
+  i := min(i, StringGrid1.RowCount - 1);
+  StringGrid1.Selection := rect(0, i, StringGrid1.ColCount - 1, i);
+  If i > StringGrid1.TopRow Then StringGrid1.TopRow := i;
 End;
 
 Procedure TForm3.StringGrid1DrawCell(Sender: TObject; aCol, aRow: Integer;
