@@ -1,21 +1,21 @@
-Howto for CopyCommander2, made by Corpsman, support : www.Corpsman.de
+# Manual for CopyCommander2
 
-License : This software is postcardware, for non commercial use only.
-
-Warranty : There is no warranty !
-
-Usage :
+## Usage
 
 This Programm is orientated on the "Total Commander" application for Windows.
 
 The Main porpuse of this programm is copying and moveing files / directories, in a queue.
 
-Press CTRL + S to Open the Synchronize Folder Dialog
+### Sync folder feature
+
+Navigate to two different folders that you want to be synchronized. Press CTRL + S to open the synchronize folder dialog.
+
+
  by right click in the Synchronize Dialog you can change the copy direction of files, or 
  disable copying directories ( also available the key commands "N", "L", "R")
 
 
-Main Screen:
+### Main Screen
 Select some files, or folders with the mouse or keyboard and press
 
 F5 to copy the selected ones to the destination on the other side
@@ -39,3 +39,9 @@ The in app shortcutbuttons :
 If you want to use predefined loaddirectories enter the path into one of the edit fields and right 
 click on that field to open the popup menu, than click "Add". If you want to delete one of the 
 shortcut buttons right click on the button and choose delete.
+
+## License
+see [here](https://github.com/PascalCorpsman/CopyCommander2/blob/main/license.md)
+
+## Warranty
+There is no warranty !

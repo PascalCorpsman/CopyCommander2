@@ -88,7 +88,7 @@
         <UnitName Value="Unit5"/>
       </Unit7>
       <Unit8>
-        <Filename Value="how_to_use.txt"/>
+        <Filename Value="how_to_use.md"/>
         <IsPartOfProject Value="True"/>
       </Unit8>
     </Units>
