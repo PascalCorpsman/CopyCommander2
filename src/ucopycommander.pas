@@ -308,7 +308,7 @@ End;
 //  //    inttostr(dt.Sec));
 //End;
 
-Function FileSizeToString(Value: Int64): String;
+Function FileSizeToString(Value: Int64): String; // ACHTUNG: bei Änderungen "SortListviewFromTo" berücksichtigen !
 Var
   s: char;
   r: Int64;

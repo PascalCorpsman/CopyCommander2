@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.12                                                         *)
+(* Version     : 0.13                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -88,6 +88,7 @@
 (*                      ADD: del target file in diff dialog if source file is *)
 (*                           not existing.                                    *)
 (*                      ADD: improve UI on reloading directories              *)
+(*               0.13 = ADD: implement sort for EXT and size                  *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -375,6 +376,91 @@ Begin
   End;
 End;
 
+Procedure SortListviewFromTo(Const Listview: TListview; aFrom, aTo: Integer; adir: Boolean; aItem: integer);
+(*
+ * Im Prinzip die Umkehrfunktion zu FileSizeToString und zur Angabe wie viele Dateien in einem Verzeichnis sind ..
+ * 149 B -> 149
+ * 685,7MB -> 718281728
+ * (29) -> 29
+ *)
+  Function SizeToInt(aSizeString: String): uint64;
+  Var
+    scale: uint64;
+    index: integer;
+    p, s: String;
+  Begin
+    index := pos('(', aSizeString);
+    If index <> 0 Then Begin
+      delete(aSizeString, index, 1);
+      index := pos(')', aSizeString);
+      If index <> 0 Then
+        delete(aSizeString, index, 1);
+      result := strtointdef(trim(aSizeString), 0);
+    End
+    Else Begin
+      result := 0;
+      p := '';
+      s := '';
+      index := pos(',', aSizeString);
+      If index <> 0 Then Begin
+        p := copy(aSizeString, 1, index - 1);
+        delete(aSizeString, 1, index);
+        s := copy(aSizeString, 1, length(aSizeString) - 2);
+        delete(aSizeString, 1, Length(aSizeString) - 2);
+      End
+      Else Begin
+        p := copy(aSizeString, 1, length(aSizeString) - 2);
+        delete(aSizeString, 1, Length(aSizeString) - 2);
+      End;
+      If Length(aSizeString) <> 2 Then exit;
+      scale := 1;
+      While aSizeString[1] In ['K', 'M', 'G', 'T', 'P'] Do Begin
+        scale := scale * 1024;
+        Case aSizeString[1] Of
+          'K': aSizeString[1] := ' ';
+          'M': aSizeString[1] := 'K';
+          'G': aSizeString[1] := 'M';
+          'T': aSizeString[1] := 'G';
+          'P': aSizeString[1] := 'T';
+        End;
+      End;
+      result := strtointdef(p, 0) * scale + strtointdef(s, 0) * (scale Div 1024);
+    End;
+  End;
+
+  Function Comp(Const a, b: TListitem): Boolean;
+  Begin
+    result := false;
+    Case aItem Of
+      0: result := lowercase(a.caption) < lowercase(b.Caption);
+      1: result := lowercase(a.SubItems[0]) < lowercase(b.SubItems[0]);
+      2: result := SizeToInt(a.SubItems[1]) < SizeToInt(b.SubItems[1]);
+    End;
+    If adir Then result := Not result;
+  End;
+
+Var
+  item, item2: TListitem;
+  b: Boolean;
+  i: Integer;
+Begin
+  // Bubblesort, ist nicht gerade schnell, dafür aber ordnungsverträglich.
+  b := True;
+  While b Do Begin
+    b := false;
+    For i := aFrom + 1 To aTo Do Begin
+      item := listview.Items[i];
+      item2 := listview.Items[i - 1];
+      If comp(Item, Item2) Then Begin
+        listview.Items[i] := item2;
+        listview.Items[i - 1] := item;
+        b := true;
+      End;
+    End;
+    dec(aTo);
+  End;
+End;
+
 (*
 Wir machen alles von Hand.
 0 =  Name soll die Verzeichniss, und Dateinamen Auf Absteigend sortieren.
@@ -384,135 +470,34 @@ Wir machen alles von Hand.
 
 Procedure ListviewSort(Const Listview: TListview; Order: Integer);
 Var
-  item, item2: TListitem;
   i, j, k, kk: Integer;
-  b: Boolean;
-  //  s: String;
+  item: TListitem;
 Begin
-  Case Order Of
-    0: Begin // Name soll die Verzeichniss, und Dateinamen Aufsteigend sortieren.
-        // Sortieren der
-        listview.BeginUpdate;
-        j := 1;
-        k := listview.Items.count - 1;
-        For i := 1 To listview.Items.count - 1 Do Begin
-          item := listview.Items[i];
-          //          s := item.SubItems[1];
-          If item.SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
-            k := i - 1;
-            break;
-          End;
-        End;
-        kk := k;
-        // Nun sortieren wir von j - k einschlieslich.
-        If k > j Then Begin
-          // Bubblesort, ist nicht gerade schnell, dafür aber ordnungsverträglich.
-          b := True;
-          While b Do Begin
-            b := false;
-            For i := j + 1 To k Do Begin
-              item := listview.Items[i];
-              item2 := listview.Items[i - 1];
-              If lowercase(Item.caption) < lowercase(item2.Caption) Then Begin
-                listview.Items[i] := item2;
-                listview.Items[i - 1] := item;
-                b := true;
-              End;
-            End;
-            dec(k);
-          End;
-        End;
-        // Sortieren Nach Dateinamen.
-        j := kk + 1;
-        k := Listview.items.count - 1;
-        // Nun sortieren wir von j - k einschlieslich.
-        If k > j Then Begin
-          // Bubblesort, ist nicht gerade schnell, dafür aber ordnungsverträglich.
-          b := True;
-          While b Do Begin
-            b := false;
-            For i := j + 1 To k Do Begin
-              item := listview.Items[i];
-              item2 := listview.Items[i - 1];
-              If lowercase(Item.caption) < lowercase(item2.Caption) Then Begin
-                listview.Items[i] := item2;
-                listview.Items[i - 1] := item;
-                b := true;
-              End;
-            End;
-            dec(k);
-          End;
-        End;
-        listview.EndUpdate;
-      End;
-    1: Begin // Ext, nur Dateitypen, auf aufsteigend.
-        Showmessage('Not Implemented yet.');
-      End;
-    2: Begin // Size, nur Dateigröße, auf aufsteigend.
-        Showmessage('Not Implemented yet.');
-      End;
-    3: Begin // Name soll die Verzeichniss, und Dateinamen absteigend sortieren.
-        // Sortieren der
-        listview.BeginUpdate;
-        j := 1;
-        k := listview.Items.count - 1;
-        For i := 1 To listview.Items.count - 1 Do Begin
-          item := listview.Items[i];
-          //          s := item.SubItems[1];
-          If item.SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
-            k := i - 1;
-            break;
-          End;
-        End;
-        kk := k;
-        // Nun sortieren wir von j - k einschlieslich.
-        If k > j Then Begin
-          // Bubblesort, ist nicht gerade schnell, dafür aber ordnungsverträglich.
-          b := True;
-          While b Do Begin
-            b := false;
-            For i := j + 1 To k Do Begin
-              item := listview.Items[i];
-              item2 := listview.Items[i - 1];
-              If lowercase(Item.caption) > lowercase(item2.Caption) Then Begin
-                listview.Items[i] := item2;
-                listview.Items[i - 1] := item;
-                b := true;
-              End;
-            End;
-            dec(k);
-          End;
-        End;
-        // Sortieren Nach Dateinamen.
-        j := kk + 1;
-        k := Listview.items.count - 1;
-        // Nun sortieren wir von j - k einschlieslich.
-        If k > j Then Begin
-          // Bubblesort, ist nicht gerade schnell, dafür aber ordnungsverträglich.
-          b := True;
-          While b Do Begin
-            b := false;
-            For i := j + 1 To k Do Begin
-              item := listview.Items[i];
-              item2 := listview.Items[i - 1];
-              If lowercase(Item.caption) > lowercase(item2.Caption) Then Begin
-                listview.Items[i] := item2;
-                listview.Items[i - 1] := item;
-                b := true;
-              End;
-            End;
-            dec(k);
-          End;
-        End;
-        listview.EndUpdate;
-      End;
-    4: Begin // Ext, nur Dateitypen, absteigend.
-        Showmessage('Not Implemented yet.');
-      End;
-    5: Begin // Size, nur Dateigröße, absteigend.
-        Showmessage('Not Implemented yet.');
-      End;
+  listview.BeginUpdate;
+  // 1. Separieren nach Dirs / Files
+  j := 1;
+  k := listview.Items.count - 1;
+  For i := 1 To listview.Items.count - 1 Do Begin
+    item := listview.Items[i];
+    If item.SubItems[SubItemIndexEXT] <> '<DIR>' Then Begin
+      k := i - 1;
+      break;
+    End;
   End;
+  kk := k;
+  // Das Eigentliche Sortieren
+  // Nun sortieren wir von j - k einschlieslich -> Verzeichnisse
+  If k > j Then Begin
+    SortListviewFromTo(Listview, j, k, order < 3, order Mod 3);
+  End;
+  // Sortieren Nach Dateinamen.
+  j := kk + 1;
+  k := Listview.items.count - 1;
+  // Nun sortieren wir von j - k einschlieslich -> Dateien
+  If k > j Then Begin
+    SortListviewFromTo(Listview, j, k, order < 3, order Mod 3);
+  End;
+  listview.EndUpdate;
 End;
 
 (*
@@ -576,7 +561,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.12';
+  Caption := 'Copycommander2 ver. 0.13';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
