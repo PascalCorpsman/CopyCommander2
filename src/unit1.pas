@@ -89,6 +89,7 @@
 (*                           not existing.                                    *)
 (*                      ADD: improve UI on reloading directories              *)
 (*               0.13 = ADD: implement sort for EXT and size                  *)
+(*                      FIX: column width glicht during resize                *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -1434,12 +1435,12 @@ End;
 
 Procedure TForm1.ListView1Resize(Sender: TObject);
 Begin
-  ListView1.Columns[0].Width := ListView1.Width - ListView1.Columns[1].Width - ListView1.Columns[2].Width - Scale96ToForm(50);
+  ListView1.Columns[0].Width := ListView1.Width - ListView1.Columns[1].Width - ListView1.Columns[2].Width;
 End;
 
 Procedure TForm1.ListView2Resize(Sender: TObject);
 Begin
-  ListView2.Columns[0].Width := ListView2.Width - ListView2.Columns[1].Width - ListView2.Columns[2].Width - Scale96ToForm(50);
+  ListView2.Columns[0].Width := ListView2.Width - ListView2.Columns[1].Width - ListView2.Columns[2].Width;
 End;
 
 Procedure TForm1.DiffViewer;

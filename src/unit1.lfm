@@ -88,7 +88,8 @@ object Form1: TForm1
           end        
           item
             Caption = 'Size'
-            MinWidth = 50
+            MinWidth = 75
+            Width = 75
           end>
         HideSelection = False
         MultiSelect = True
@@ -192,7 +193,8 @@ object Form1: TForm1
           end        
           item
             Caption = 'Size'
-            MinWidth = 50
+            MinWidth = 75
+            Width = 75
           end>
         HideSelection = False
         MultiSelect = True
