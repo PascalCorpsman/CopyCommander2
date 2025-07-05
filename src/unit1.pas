@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.13                                                         *)
+(* Version     : 0.14                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -90,6 +90,7 @@
 (*                      ADD: improve UI on reloading directories              *)
 (*               0.13 = ADD: implement sort for EXT and size                  *)
 (*                      FIX: column width glicht during resize                *)
+(*               0.14 = Add: Sync Folder                                      *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -148,6 +149,8 @@ Type
     MenuItem18: TMenuItem;
     MenuItem23: TMenuItem;
     MenuItem24: TMenuItem;
+    MenuItem25: TMenuItem;
+    MenuItem26: TMenuItem;
     mnFileManagerR: TMenuItem;
     mnFilemanagerL: TMenuItem;
     mnMoveShortcut: TMenuItem;
@@ -223,6 +226,7 @@ Type
     Procedure MenuItem17Click(Sender: TObject);
     Procedure MenuItem23Click(Sender: TObject);
     Procedure MenuItem24Click(Sender: TObject);
+    Procedure MenuItem25Click(Sender: TObject);
     Procedure mnCreateShortcutRClick(Sender: TObject);
     Procedure MenuItem19Click(Sender: TObject);
     Procedure mnCreateShortcutLClick(Sender: TObject);
@@ -281,6 +285,7 @@ Uses LazFileUtils, LCLType, math
   , Unit3 // Diff Dialog
   , unit4 // Errorlog
   , Unit5 // Abfrage Skip, Replace ...
+  , Unit6 // Sync Folder Dialog
   ;
 
 Const
@@ -562,7 +567,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.13';
+  Caption := 'Copycommander2 ver. 0.14';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
@@ -931,6 +936,10 @@ Begin
     DiffViewer();
     exit;
   End;
+  If (ssCtrl In shift) And (key = ord('L')) Then Begin
+    MenuItem25Click(Nil);
+    exit;
+  End;
   // Swap Left Right
   If (ssCtrl In shift) And (key = VK_TAB) Then Begin
     s := fLeftView.aDirectory;
@@ -1256,6 +1265,19 @@ End;
 Procedure TForm1.MenuItem24Click(Sender: TObject);
 Begin
   cbDirRight.Items.Clear;
+End;
+
+Procedure TForm1.MenuItem25Click(Sender: TObject);
+Begin
+  // Sync
+  form6.init(fLeftView.aDirectory, fRightView.aDirectory);
+  form6.ShowModal;
+  // Wenn Die Jobliste eh schon sichtbar ist, dann zeigen wir, das wir sie Aktualisiert haben ;)
+  If form6.ModalResult = mrOK Then Begin
+    If Form2.Visible Then Begin
+      Form2.BringToFront;
+    End;
+  End;
 End;
 
 Procedure TForm1.mnCreateShortcutLClick(Sender: TObject);

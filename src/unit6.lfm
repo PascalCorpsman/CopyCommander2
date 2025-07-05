@@ -1,0 +1,139 @@
+object Form6: TForm6
+  Left = 339
+  Height = 483
+  Top = 117
+  Width = 803
+  Caption = 'Form6'
+  ClientHeight = 483
+  ClientWidth = 803
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  object Label1: TLabel
+    Left = 8
+    Height = 16
+    Top = 16
+    Width = 41
+    Caption = 'Source'
+  end
+  object Label2: TLabel
+    Left = 16
+    Height = 16
+    Top = 72
+    Width = 39
+    Caption = 'Target'
+  end
+  object Label3: TLabel
+    Left = 64
+    Height = 16
+    Top = 16
+    Width = 41
+    Caption = 'Label3'
+  end
+  object Label4: TLabel
+    Left = 64
+    Height = 16
+    Top = 72
+    Width = 41
+    Caption = 'Label4'
+  end
+  object Button1: TButton
+    Left = 64
+    Height = 25
+    Top = 40
+    Width = 728
+    Anchors = [akTop, akLeft, akRight]
+    Caption = '/\  | \/'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object CheckBox1: TCheckBox
+    Left = 64
+    Height = 22
+    Top = 99
+    Width = 72
+    Caption = 'verbose'
+    Checked = True
+    State = cbChecked
+    TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 64
+    Height = 25
+    Top = 136
+    Width = 728
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Scan and create report..'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object Memo1: TMemo
+    Left = 64
+    Height = 199
+    Top = 176
+    Width = 728
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Lines.Strings = (
+      'Memo1'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoBoth
+    TabOrder = 3
+    WordWrap = False
+  end
+  object Button3: TButton
+    Left = 64
+    Height = 25
+    Top = 385
+    Width = 728
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Export lists ..'
+    TabOrder = 4
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 64
+    Height = 25
+    Top = 417
+    Width = 728
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Apply lists to work queues ..'
+    TabOrder = 5
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 64
+    Height = 25
+    Top = 448
+    Width = 728
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 6
+  end
+  object Button6: TButton
+    Left = 767
+    Height = 25
+    Top = 8
+    Width = 25
+    Anchors = [akTop, akRight]
+    Caption = '?'
+    TabOrder = 7
+    OnClick = Button6Click
+  end
+  object CheckBox2: TCheckBox
+    Left = 160
+    Height = 22
+    Top = 99
+    Width = 106
+    Caption = 'md5 compare'
+    TabOrder = 8
+    OnClick = CheckBox2Click
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.csv'
+    Filter = 'CommaFile|*.csv|All|*'
+    Left = 636
+    Top = 44
+  end
+end
