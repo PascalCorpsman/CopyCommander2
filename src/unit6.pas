@@ -124,6 +124,10 @@ Begin
     ShowMessage('Error: "' + label4.Caption + '" is not a valid target directory.');
     exit;
   End;
+  If label3.caption = label4.caption Then Begin
+    ShowMessage('Error, source and target are the same directories.');
+    exit;
+  End;
   Memo1.clear;
   oldN := GetTickCount64;
   AppendLog('Start: ' + FormatDateTime('YYYY.MM.DD, HH:NN:SS', now));
