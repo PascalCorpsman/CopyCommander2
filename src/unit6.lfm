@@ -69,7 +69,7 @@ object Form6: TForm6
   end
   object Memo1: TMemo
     Left = 64
-    Height = 199
+    Height = 167
     Top = 176
     Width = 728
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -84,7 +84,7 @@ object Form6: TForm6
   object Button3: TButton
     Left = 64
     Height = 25
-    Top = 385
+    Top = 352
     Width = 728
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Export lists ..'
@@ -128,6 +128,16 @@ object Form6: TForm6
     Width = 106
     Caption = 'md5 compare'
     TabOrder = 8
+    OnClick = CheckBox2Click
+  end
+  object CheckBox3: TCheckBox
+    Left = 64
+    Height = 22
+    Top = 392
+    Width = 298
+    Anchors = [akLeft, akBottom]
+    Caption = 'Delete empty folders on target when finished'
+    TabOrder = 9
     OnClick = CheckBox2Click
   end
   object SaveDialog1: TSaveDialog

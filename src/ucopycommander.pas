@@ -41,7 +41,8 @@ Type
     jtMoveDir,
     jtMoveFile,
     jtDelFile,
-    jtDelDir
+    jtDelDir,
+    jtDelEmptyFolders
     );
 
   TJobAnswers = (
@@ -171,6 +172,11 @@ Function GetFreeDiskSpaceOf(afolder: String): int64;
 
 Function GetAllAvailableDrives(): TStringList;
 
+(*
+ * Listet alle Leeren Unterverzeichnisse von aDir auf.
+ *)
+Function GetEmptySubDirs(aDir: String): TStringList;
+
 Implementation
 
 Uses
@@ -272,6 +278,47 @@ Begin
 {$ENDIF}
 End;
 
+Function GetEmptySubDirs(aDir: String): TStringList;
+  Function LGetFileEmptyDirs(subDir: String; Const aList: TStringList): Boolean;
+  Var
+    info: TSearchRec;
+    tmp, subDirHasFiles: Boolean;
+  Begin
+    // Include trailing Backslash
+    subDir := IncludeTrailingPathDelimiter(subDir);
+    //erstmal schauen ob wir dateien haben (wenn ja müssen wir eventuell ordner hinzufügen)
+    subDirHasFiles := False;
+    If FindFirstUTF8(subDir + '*', faAnyFile, info) = 0 Then Begin
+      Repeat
+        If (faDirectory And info.Attr = 0) Then
+          subDirHasFiles := True;
+      Until (FindNextUTF8(info) <> 0) Or (subDirHasFiles);
+    End;
+    FindClose(info);
+    //jetzt alle unterordner durchgehen
+    If FindFirstUTF8(subDir + '*', faAnyFile, info) = 0 Then Begin
+      Repeat
+        If (faDirectory And info.Attr = faDirectory) And (info.Name <> '.') And (info.Name <> '..') Then Begin
+          // Das muss so komisch gemacht werden, sonst macht die ShortCircuit Evaluation den Rekursiven Aufruf ggf. Platt, der hier aber gewünscht ist !
+          tmp := LGetFileEmptyDirs(subDir + info.Name, aList);
+          subDirHasFiles := subDirHasFiles Or tmp;
+        End;
+      Until (FindNextUTF8(info) <> 0);
+    End;
+    FindClose(info);
+    // Unser Ordner hat nur Leere Unterordner, oder ist komplett leer -> also wird er ebenfalls als "Leer" markiert.
+    If Not subDirHasFiles Then Begin
+      alist.add(subDir);
+    End;
+    //funktion verlassen und mitteilen ob wir dateien in Ordner haben
+    result := subDirHasFiles;
+  End;
+Begin
+  result := Tstringlist.create;
+  If Not LGetFileEmptyDirs(aDir, result) Then
+    result.Add(aDir);
+End;
+
 //Function GetFileModifiedTime(Filename: String): Longint;
 //Var
 //  f: File;
@@ -350,12 +397,13 @@ Function JobToString(Const Job: TJob): String;
 Begin
   result := 'Error';
   Case Job.JobType Of
-    jtCopyDir, jtCopyFile: result := 'Copy ';
-    jtMoveDir, jtMoveFile: result := 'Move ';
-    jtDelDir, jtDelFile: result := 'Delete ';
+    jtCopyDir, jtCopyFile: result := 'Copy: ';
+    jtMoveDir, jtMoveFile: result := 'Move: ';
+    jtDelDir, jtDelFile: result := 'Delete: ';
+    jtDelEmptyFolders: result := 'Delete empty subfolders: ';
   End;
   result := result + job.Source;
-  If Not (Job.JobType In [jtDelDir, jtDelFile]) Then Begin
+  If Not (Job.JobType In [jtDelDir, jtDelFile, jtDelEmptyFolders]) Then Begin
     result := result + ' -> ' + job.Dest;
   End;
 End;
@@ -667,6 +715,8 @@ Function TWorkThread.DoJob: Boolean;
 Var
   oldJob, Job: TJob;
   s: String;
+  sl: TStringList;
+  i: Integer;
 Begin
   result := false;
   If Not assigned(fAJob) Then exit;
@@ -790,6 +840,18 @@ Begin
           AddToErrorLog('Unable to delete file.');
           exit;
         End;
+      End;
+    jtDelEmptyFolders: Begin
+        sl := GetEmptySubDirs(fAJob.Source);
+        // GetEmptySubDirs liefert zum Glück die Verzeichnisse von "innen" nach "außen" sortiert
+        // Also können wir direct anfangen die Verzeichnisse zu löschen ;)
+        For i := 0 To sl.Count - 1 Do Begin
+          s := sl[i];
+          If Not RemoveDirUTF8(s) Then Begin
+            AddToErrorLog('Unable to delete folder: ' + s);
+          End;
+        End;
+        sl.free;
       End;
     jtDelDir: Begin
         If Not DelFolder(fAJob.Source) Then Begin
@@ -954,6 +1016,9 @@ Begin
         js := GetDirSize(Job.Source);
         fStatistic.BytesToCopyToFinishJobs := fStatistic.BytesToCopyToFinishJobs + js;
         fStatistic.TotalJobBytes := fStatistic.TotalJobBytes + js;
+      End;
+    jtDelEmptyFolders: Begin
+        // Nichts ..
       End;
   End;
   FInJobFifo.Push(job);

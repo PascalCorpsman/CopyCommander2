@@ -1566,11 +1566,7 @@ Begin
 
   (* Wird jedes mal aufgerufen, wenn ein Job gestartet wird *)
   form2.ProgressBar1.Position := 0;
-  Case job.JobType Of
-    jtCopyDir, jtCopyFile: form2.Label2.Caption := 'Copy: ' + ExtractFileName(Job.Source);
-    jtMoveDir, jtMoveFile: form2.Label2.Caption := 'Move: ' + ExtractFileName(Job.Source);
-    jtDelDir, jtDelFile: form2.Label2.Caption := 'Delete: ' + ExtractFileName(Job.Source);
-  End;
+  form2.Label2.Caption := JobToString(job);
   If Not Form2.Visible Then Begin
     Form2.Show;
   End;
@@ -1597,6 +1593,11 @@ Begin
       End;
     jtDelFile, jtDelDir: Begin
         s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Source));
+        If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
+        If s = fRightView.aDirectory Then LoadDir(s, fRightView);
+      End;
+    jtDelEmptyFolders: Begin
+        s := job.Source;
         If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
         If s = fRightView.aDirectory Then LoadDir(s, fRightView);
       End;

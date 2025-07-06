@@ -35,6 +35,7 @@ Type
     Button6: TButton;
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
+    CheckBox3: TCheckBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -180,21 +181,31 @@ End;
 Procedure TForm6.Button4Click(Sender: TObject);
 Var
   i: Integer;
-  Res: String;
+  Res, Res2: String;
   j: TJob;
 Begin
   // Apply Lists
   Res := '';
+  Res2 := '';
   // 1. Renamings
   For i := 0 To high(RenameList) Do Begin
+    If Not ForceDirectoriesUTF8(ExtractFileDir(label4.Caption + RenameList[i].DestFile)) Then Begin
+      res2 := res2 + LineEnding + ExtractFileDir(label4.Caption + RenameList[i].DestFile);
+      Continue;
+    End;
     If Not RenameFileUTF8(label4.Caption + RenameList[i].SourceFile, label4.Caption + RenameList[i].DestFile) Then Begin
       res := res + LineEnding + label4.Caption + RenameList[i].SourceFile + ' -> ' + label4.Caption + RenameList[i].DestFile;
     End;
+  End;
+  If res2 <> '' Then Begin
+    showmessage('Error, could not create folders ' + res2);
   End;
   If res <> '' Then Begin
     showmessage('Error, could not rename ' + res);
     exit;
   End;
+  If res2 <> '' Then exit;
+  res2 := '';
   res := '';
   // 2. Deletions -- Das muss vorher gemacht werden
   //    1. Dass auch genug platz frei wird zum Kopieren
@@ -222,7 +233,13 @@ Begin
     j.JobType := jtCopyFile;
     form1.addJob(j);
   End;
-  // TODO: Leere Verzeichnise die durchs Löschen oder Verschieben entstanden sind -> Löschen, nur wie ?
+  If CheckBox3.Checked Then Begin
+    j := TJob.Create();
+    j.Source := label4.Caption;
+    j.Dest := '';
+    j.JobType := jtDelEmptyFolders;
+    form1.addJob(j);
+  End;
   ModalResult := mrOK;
 End;
 
