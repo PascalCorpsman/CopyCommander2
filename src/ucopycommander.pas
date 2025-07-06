@@ -294,7 +294,7 @@ Function GetEmptySubDirs(aDir: String): TStringList;
           subDirHasFiles := True;
       Until (FindNextUTF8(info) <> 0) Or (subDirHasFiles);
     End;
-    FindClose(info);
+    FindCloseUTF8(info);
     //jetzt alle unterordner durchgehen
     If FindFirstUTF8(subDir + '*', faAnyFile, info) = 0 Then Begin
       Repeat
@@ -305,7 +305,7 @@ Function GetEmptySubDirs(aDir: String): TStringList;
         End;
       Until (FindNextUTF8(info) <> 0);
     End;
-    FindClose(info);
+    FindCloseUTF8(info);
     // Unser Ordner hat nur Leere Unterordner, oder ist komplett leer -> also wird er ebenfalls als "Leer" markiert.
     If Not subDirHasFiles Then Begin
       alist.add(subDir);
