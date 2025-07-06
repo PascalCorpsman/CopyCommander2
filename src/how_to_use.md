@@ -6,16 +6,25 @@ This Programm is orientated on the "Total Commander" application for Windows.
 
 The main porpuse of this programm is copying and moveing files / directories, in a queue.
 
-### Sync folder feature
+### "diff viewer" folder feature
 
-Navigate to two different folders that you want to be synchronized. Press CTRL + S to open the synchronize folder dialog.
+Navigate to two different folders that you want to be synchronized. Press CTRL + S to open the diff viewer folder dialog.
 
-![](../images/sync_example.png)
+![](../images/diff_example.png)
+
 
 In the upcomming dialog you can see the suggestions by the programm for the copy jobs to make both folders "same".
 
 By right click in the Synchronize Dialog you can change the copy direction of files, or 
  disable copying directories (also available the key commands "N", "L", "R")
+
+### "sync" folder feature
+
+When you want to sync a "source" folder to a "target" folder (e.g. update a backup). Press CTRL + L to open the sync folder dialog.
+
+![](../images/sync_example.png)
+
+except "delete empty folders" all "work" that will be done is exportable as .csv (see backround)
 
 
 ### Main Screen
