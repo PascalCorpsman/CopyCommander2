@@ -1,4 +1,4 @@
-CopyCommander is a tool for windows/linux to use queued file-copy/moves from one to another directory. It also allows synchronizing of files over two directories.
+CopyCommander is a tool for windows/linux to use queued file-copy/moves from one to another directory. It also allows two different synchronizings of files over two directories (diff viewer, sync).
 
 ![Overview](images/Overview.png)
 
