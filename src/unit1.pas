@@ -90,7 +90,8 @@
 (*                      ADD: improve UI on reloading directories              *)
 (*               0.13 = ADD: implement sort for EXT and size                  *)
 (*                      FIX: column width glicht during resize                *)
-(*               0.14 = Add: Sync Folder                                      *)
+(*  (06.07.2025) 0.14 = Add: Sync Folder                                      *)
+(*               0.15 =                                                       *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -567,7 +568,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.14';
+  Caption := 'Copycommander2 ver. 0.15';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
