@@ -49,7 +49,16 @@ Procedure ScanDirToBuffer(Const aDir: String; Var buffer: TFileList);
 Procedure SortFileList(Var aList: TFileList);
 
 (*
- * Erzeugt aus Sourcefiles und DestFiles die Joblisten
+ * Erzeugt aus SourceDir, TargetDir die Joblisten, mit dem Ziel möglichst wenig kopieren, möglichst viel Umbenennen.
+ * Die Grundidee ist dass es keine 2 Dateien gibt die Gleich sind, dabei wird folgt vorgegangen:
+ * 1. Dateinamen Vergleich
+ * 2. Dateigrößen Vergleich
+ *  => beides Gleich -> ignorieren
+ *     sonst -> Target -> Delliste, Source -> Copyliste
+ * 3. Versuch aus der Delliste Dateien in die Rename Liste zu bekommen
+ *  => Dazu Vergleich Copy Liste mit Delliste.
+ *     Dateien die Kopiert werden sollen, aber "gleich" (Größe / md5) sind mit Dateien in der Delliste
+ *     werden aus beiden listen entfernt und stattdessen umbenannt.
  *)
 Procedure GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles, DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList, DelList: TFileList; MD5Comparing: Boolean);
 
@@ -70,7 +79,7 @@ Procedure CreateReportFile(FileName, SourceDir, TargetDir: String; Const RenameL
 
 Implementation
 
-Uses LazFileUtils, md5;
+Uses LazFileUtils, md5, Dialogs;
 
 Const
   BufferBlockSize = 1024;
@@ -191,7 +200,7 @@ Var
 
 Var
   s, d, i, j, k: Integer;
-  CopyHash, DelHash: String;
+  CopyHash, DelHash, tmp: String;
 Begin
   SourceDir := IncludeTrailingPathDelimiter(SourceDir);
   TargetDir := IncludeTrailingPathDelimiter(TargetDir);
@@ -239,6 +248,20 @@ Begin
   While s < length(SourceFiles) Do Begin
     AddToCopyList(s);
     inc(s);
+  End;
+  // Schauen ob wir ohne MD5 comparing Eindeutigkeit haben ..
+  If Not MD5Comparing Then Begin
+    tmp := '';
+    For j := 0 To DelListCnt - 1 Do Begin
+      For i := j + 1 To DelListCnt - 1 Do Begin
+        If DelList[i].FileSize = DelList[j].FileSize Then Begin
+          tmp := tmp + LineEnding + DelList[i].FileName + ' <-> ' + DelList[j].FileName;
+        End;
+      End;
+    End;
+    If tmp <> '' Then Begin
+      showmessage('Warning, file rename heuristic will fail on the following files (this could be avoided, if md5 comparing is enabled): ' + tmp);
+    End;
   End;
   // 2. Versuch die Listen zu "optimieren"
   //    \-> Ist ein Dellist Eintrag in der Copy Liste -> RenameListe
