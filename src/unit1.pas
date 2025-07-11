@@ -93,6 +93,7 @@
 (*  (06.07.2025) 0.14 = Add: Sync Folder                                      *)
 (*               0.15 = ADD: Warnung wenn file compare heuristik scheitern    *)
 (*                           könnte                                           *)
+(*                      FIX: Filesize info was "incorrect"                    *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
