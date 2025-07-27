@@ -119,6 +119,7 @@ Type
     Function DoJob(): Boolean; // Führt Alle Prüfungen und Vorbereitenden Arbeiten zu einem Job aus
     Procedure CheckForOnFileTransfereStatistic; // Generiert den VCL Aufrufe für die Statistiken
 
+    Function CompareJobs(Const a, b: TJob): Boolean; // Vergleich 2 Jobs, true Wenn Gleich
     (*
      * Alle Folgenden Proceduren werden via Synchronize aufgerufen.
      *)
@@ -138,6 +139,7 @@ Type
     Property HasQuestions: Boolean read GetHasQuestions;
     Procedure Execute; override;
     Procedure AddJob(Const Job: TJob);
+    Function ExistJob(Const Job: TJob): Boolean;
     Function JobsPending(): Boolean; // True, wenn der Worker noch irgendwas zu tun hat...
     Procedure CancelAllJobs();
     Function PopErrorJob(): TErrorJob;
@@ -882,6 +884,15 @@ Begin
   End;
 End;
 
+Function TWorkThread.CompareJobs(Const a, b: TJob): Boolean;
+Begin
+  result :=
+    (a.Source = b.Source) And (a.Dest = b.Dest) // Quelle und Ziel sind Gleich
+  // TODO: Rein, oder draußen lassen ?
+  //    and (a.JobType = b.JobType)
+  ;
+End;
+
 Procedure TWorkThread.LCLOnByteTransfereStatistic;
 Begin
   If Assigned(OnByteTransfereStatistic) Then Begin
@@ -1022,6 +1033,11 @@ Begin
       End;
   End;
   FInJobFifo.Push(job);
+End;
+
+Function TWorkThread.ExistJob(Const Job: TJob): Boolean;
+Begin
+  result := FInJobFifo.ContainsElement(job, @CompareJobs);
 End;
 
 Function TWorkThread.JobsPending: Boolean;

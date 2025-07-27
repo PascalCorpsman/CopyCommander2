@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.14                                                         *)
+(* Version     : 0.15                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -94,6 +94,8 @@
 (*               0.15 = ADD: Warnung wenn file compare heuristik scheitern    *)
 (*                           könnte                                           *)
 (*                      FIX: Filesize info was "incorrect"                    *)
+(*                      ADD: detect double jobs during editing                *)
+(*                      FIX: tab did not work to switch sides                 *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -254,9 +256,10 @@ Type
     finiFile: TIniFile;
     fButtonPopupTag: Integer;
     startup: boolean;
+    fJobFifo: TJobFifo; // zum Asynchronen füllen von Job aufträgen, sonst kann es LCL Index Fehler geben
     Procedure DiffViewer();
-    Procedure CreateAndAddJob(Item: TListItem; JobType: TJobSubType; SourceDir,
-      DestDir: String);
+    Procedure AddtoCreateAndAddJobQueue(Item: TListItem; JobType: TJobSubType; SourceDir,
+      DestDir: String); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
     Procedure OnByteTransfereStatistic(Sender: TObject; Statistic: TTransfereStatistic);
     Procedure OnStartJob(Sender: TObject; Job: TJob);
     Procedure OnFinishJob(Sender: TObject; Job: TJob);
@@ -273,7 +276,8 @@ Type
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
     Procedure LoadDir(Dir: String; Var View: TView);
-    Procedure AddJob(Const Job: TJob);
+    Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
+    Procedure HandleJobQueue(); // Arbeitet die
   End;
 
 Var
@@ -595,6 +599,7 @@ Begin
   fRightView.ComboBox := cbDirRight;
   fRightView.StatusBar := StatusBar2;
   startup := true;
+  fJobFifo := TJobFifo.create;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -610,6 +615,11 @@ Begin
   (*
    * theoretisch Idled der Thread im 1ms takt, d.h. nach 10ms ist er auf jeden Fall weg.
    *)
+  While Not fJobFifo.isempty Do Begin
+    fJobFifo.Pop.Free;
+  End;
+  fJobFifo.free;
+  fJobFifo := Nil;
   Sleep(10);
   fWorkThread.free;
   fWorkThread := Nil;
@@ -650,7 +660,8 @@ Begin
       If fWorkThread.AllResult <> jaNotChoosen Then Begin
         j := fWorkThread.PopQuestion();
         j.Answer := fWorkThread.AllResult;
-        AddJob(j);
+        AddToJobQueue(j);
+        HandleJobQueue();
       End
       Else Begin
         form5.ModalResult := mrNone;
@@ -668,7 +679,8 @@ Begin
               If form5.CheckBox1.Checked Then Begin
                 j.ToAll := true;
                 j.Answer := jaSkip;
-                AddJob(j);
+                AddToJobQueue(j);
+                HandleJobQueue();
               End
               Else Begin
                 j.free;
@@ -678,7 +690,8 @@ Begin
               j := fWorkThread.PopQuestion();
               j.ToAll := Form5.CheckBox1.Checked;
               j.Answer := jaReplace;
-              AddJob(j);
+              AddToJobQueue(j);
+              HandleJobQueue();
             End;
         End;
       End;
@@ -852,8 +865,9 @@ Begin
         job.JobType := jtCopyFile;
         job.Dest := job.Dest + ExtractFileName(job.Source);
       End;
-      AddJob(job);
+      AddToJobQueue(job);
     End;
+    HandleJobQueue();
   End;
 End;
 
@@ -987,6 +1001,7 @@ Begin
   // Wechsel in die Andere Ansicht
   If key = VK_TAB Then Begin
     oListview.SetFocus;
+    key := 0;
     exit;
   End;
   // STRG + A = Alles Markieren
@@ -1168,42 +1183,51 @@ Begin
       Else Begin
 {$ENDIF}
         // Eine oder mehrere Dateien müssen auf die Kopierliste.
-        For i := 0 To aListview.items.count - 1 Do
+        For i := 0 To aListview.items.count - 1 Do Begin
           If aListview.Items[i].Selected Then Begin
             aListview.Items[i].Selected := false;
-            CreateAndAddJob(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
+            AddtoCreateAndAddJobQueue(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
           End;
+        End;
+        HandleJobQueue();
 {$IFDEF Windows}
       End;
 {$ENDIF}
+
     End;
   End;
   // F5 = Copy
   If key = VK_F5 Then Begin
     If (aview^.aDirectory = '') Or (oView^.aDirectory = '') Then exit;
-    For i := 0 To aListview.items.count - 1 Do
+    For i := 0 To aListview.items.count - 1 Do Begin
       If aListview.Items[i].Selected Then Begin
         aListview.Items[i].Selected := false;
-        CreateAndAddJob(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
+        AddtoCreateAndAddJobQueue(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
       End;
+    End;
+    HandleJobQueue();
   End;
   // F6 = Move
   If key = VK_F6 Then Begin
     If (aview^.aDirectory = '') Or (oView^.aDirectory = '') Then exit;
-    For i := 0 To aListview.items.count - 1 Do
+    For i := 0 To aListview.items.count - 1 Do Begin
       If aListview.Items[i].Selected Then Begin
         aListview.Items[i].Selected := false;
-        CreateAndAddJob(aListview.Items[i], jsMove, aView^.aDirectory, oView^.aDirectory);
+        AddtoCreateAndAddJobQueue(aListview.Items[i], jsMove, aView^.aDirectory, oView^.aDirectory);
       End;
+    End;
+    HandleJobQueue();
   End;
   // F8 = Delete
   If key = VK_F8 Then Begin
     If (aview^.aDirectory = '') Or (oView^.aDirectory = '') Then exit;
-    For i := 0 To aListview.items.count - 1 Do
+    For i := 0 To aListview.items.count - 1 Do Begin
       If aListview.Items[i].Selected Then Begin
         aListview.Items[i].Selected := false;
-        CreateAndAddJob(aListview.Items[i], jsDel, aView^.aDirectory, '');
+        AddtoCreateAndAddJobQueue(aListview.Items[i], jsDel, aView^.aDirectory, '');
       End;
+    End;
+    HandleJobQueue();
   End;
 End;
 
@@ -1497,8 +1521,8 @@ Begin
   End;
 End;
 
-Procedure TForm1.CreateAndAddJob(Item: TListItem; JobType: TJobSubType;
-  SourceDir, DestDir: String);
+Procedure TForm1.AddtoCreateAndAddJobQueue(Item: TListItem;
+  JobType: TJobSubType; SourceDir, DestDir: String);
 Var
   job: TJob;
 Begin
@@ -1526,23 +1550,41 @@ Begin
       job.Dest := job.Dest + '.' + Item.SubItems[SubItemIndexEXT];
     End;
   End;
-  AddJob(job);
+  AddToJobQueue(job);
   // Wenn Die Jobliste eh schon sichtbar ist, dann zeigen wir, das wir sie Aktualisiert haben ;)
   If Form2.Visible Then Begin
     Form2.BringToFront;
   End;
 End;
 
-Procedure TForm1.AddJob(Const Job: TJob);
+Procedure TForm1.AddToJobQueue(Const Job: TJob);
+Begin
+  fJobFifo.Push(job);
+End;
+
+Procedure TForm1.HandleJobQueue();
 Var
   n: TTreeNode;
+  job: TJob;
 Begin
-  // Anzeigen in der LCL
-  n := form2.TreeView1.Items.Add(Nil, JobToString(job));
-  n.Data := job;
-  form2.Invalidate;
-  // Aufnehmen in die Arbeiter Klasse ;)
-  fWorkThread.AddJob(job);
+  While Not fJobFifo.isempty Do Begin
+    job := fJobFifo.Pop;
+    // Gibt es diesen Job schon in unseren Listen ?
+    If fWorkThread.ExistJob(job) Then Begin
+      If ID_NO = Application.MessageBox(pchar('Warning, Job:' + LineEnding + JobToString(job) + LineEnding + 'already exists in queue. Do you want to add the job anyway?')
+        , 'Warning'
+        , MB_YESNO Or MB_ICONQUESTION) Then Begin
+        Job.free;
+        Continue;
+      End;
+    End;
+    // Anzeigen in der LCL
+    n := form2.TreeView1.Items.Add(Nil, JobToString(job));
+    n.Data := job;
+    form2.Invalidate;
+    // Aufnehmen in die Arbeiter Klasse ;)
+    fWorkThread.AddJob(job);
+  End;
 End;
 
 Procedure TForm1.OnByteTransfereStatistic(Sender: TObject;

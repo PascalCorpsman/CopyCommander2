@@ -236,9 +236,10 @@ Begin
           Showmessage('Unable to delete: ' + job.Dest);
         End;
       End;
-      form1.AddJob(job);
+      form1.AddToJobQueue(job);
     End;
   End;
+  Form1.HandleJobQueue();
   close;
 End;
 

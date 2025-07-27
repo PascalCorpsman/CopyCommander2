@@ -215,7 +215,7 @@ Begin
     j.Source := label4.Caption + DelList[i].FileName;
     j.Dest := '';
     j.JobType := jtDelFile;
-    form1.addJob(j);
+    form1.AddToJobQueue(j);
   End;
   // 3. Copy Jobs
   For i := 0 To high(CopyList) Do Begin
@@ -225,21 +225,22 @@ Begin
       j.Source := label4.Caption + CopyList[i].FileName;
       j.Dest := '';
       j.JobType := jtDelFile;
-      form1.addJob(j);
+      form1.AddToJobQueue(j);
     End;
     j := TJob.Create();
     j.Source := label3.Caption + CopyList[i].FileName;
     j.Dest := label4.Caption + CopyList[i].FileName;
     j.JobType := jtCopyFile;
-    form1.addJob(j);
+    form1.AddToJobQueue(j);
   End;
   If CheckBox3.Checked Then Begin
     j := TJob.Create();
     j.Source := label4.Caption;
     j.Dest := '';
     j.JobType := jtDelEmptyFolders;
-    form1.addJob(j);
+    form1.AddToJobQueue(j);
   End;
+  Form1.HandleJobQueue();
   ModalResult := mrOK;
 End;
 
