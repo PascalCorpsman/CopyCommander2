@@ -97,6 +97,7 @@
 (*                      ADD: detect double jobs during editing                *)
 (*                      FIX: tab did not work to switch sides                 *)
 (*               0.16 = ADD: more detailed sync export                        *)
+(*                      ADD: searchstring by typing                           *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -131,6 +132,7 @@ Type
     ListView: TListView;
     ComboBox: TComboBox;
     StatusBar: TStatusBar;
+    SearchEdit: Tedit; // Der Benutzer gibt einfach Was ein, dann wird die entsprechende Zeile "Selektiert", ESC Löscht den String wieder
   End;
 
   PView = ^TView;
@@ -148,6 +150,8 @@ Type
     ApplicationProperties1: TApplicationProperties;
     cbDirLeft: TComboBox;
     cbDirRight: TComboBox;
+    Edit1: TEdit;
+    Edit2: TEdit;
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
@@ -217,6 +221,7 @@ Type
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
+    Procedure FormShow(Sender: TObject);
     Procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     Procedure ListView1DblClick(Sender: TObject);
     Procedure ListView1KeyDown(Sender: TObject; Var Key: Word;
@@ -258,6 +263,7 @@ Type
     fButtonPopupTag: Integer;
     startup: boolean;
     fJobFifo: TJobFifo; // zum Asynchronen füllen von Job aufträgen, sonst kann es LCL Index Fehler geben
+    Form1ShowOnce: Boolean;
     Procedure DiffViewer();
     Procedure AddtoCreateAndAddJobQueue(Item: TListItem; JobType: TJobSubType; SourceDir,
       DestDir: String); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
@@ -575,7 +581,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.15';
+  Caption := 'Copycommander2 ver. 0.16';
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
@@ -595,12 +601,20 @@ Begin
   fLeftView.ListView := ListView1;
   fLeftView.ComboBox := cbDirLeft;
   fLeftView.StatusBar := StatusBar1;
+  fLeftView.SearchEdit := edit1;
+  fLeftView.SearchEdit.text := '';
+  fLeftView.SearchEdit.Visible := false;
 
   fRightView.ListView := ListView2;
   fRightView.ComboBox := cbDirRight;
   fRightView.StatusBar := StatusBar2;
+  fRightView.SearchEdit := edit2;
+  fRightView.SearchEdit.text := '';
+  fRightView.SearchEdit.Visible := false;
+
   startup := true;
   fJobFifo := TJobFifo.create;
+  Form1ShowOnce := true;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -869,6 +883,14 @@ Begin
       AddToJobQueue(job);
     End;
     HandleJobQueue();
+  End;
+End;
+
+Procedure TForm1.FormShow(Sender: TObject);
+Begin
+  If Form1ShowOnce Then Begin
+    Form1ShowOnce := False;
+    ListView1.SetFocus;
   End;
 End;
 
@@ -1229,6 +1251,21 @@ Begin
       End;
     End;
     HandleJobQueue();
+  End;
+  // User Search eingaben ;)
+  If key = VK_ESCAPE Then Begin
+    aView^.SearchEdit.text := '';
+    aView^.SearchEdit.Visible := false;
+  End;
+  If (key In [VK_A..VK_Z]) And (Shift = []) Then Begin
+    aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_A + ord('a'));
+    aView^.SearchEdit.Visible := true;
+    For i := 0 To aListview.Items.Count - 1 Do Begin
+      If pos(aView^.SearchEdit.text, lowercase(aListview.Items[i].Caption)) <> 0 Then Begin
+        ListViewSelectItem(aView^.ListView, aListview.Items[i].Caption);
+        break;
+      End;
+    End;
   End;
 End;
 
