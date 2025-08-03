@@ -98,6 +98,7 @@
 (*                      FIX: tab did not work to switch sides                 *)
 (*               0.16 = ADD: more detailed sync export                        *)
 (*                      ADD: searchstring by typing                           *)
+(*                      ADD: FolderCount Buffering, to speedup navigation     *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -141,6 +142,11 @@ Type
     Button: TButton;
     Link: String;
     Side: String;
+  End;
+
+  TGetElementCountBuffer = Record
+    Folder: String;
+    Count: integer;
   End;
 
   { TForm1 }
@@ -221,7 +227,6 @@ Type
     Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
     Procedure FormCreate(Sender: TObject);
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
-    Procedure FormShow(Sender: TObject);
     Procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
     Procedure ListView1DblClick(Sender: TObject);
     Procedure ListView1KeyDown(Sender: TObject; Var Key: Word;
@@ -261,9 +266,9 @@ Type
     fLeftView, fRightView: TView;
     finiFile: TIniFile;
     fButtonPopupTag: Integer;
-    startup: boolean;
+    startup: boolean; // 1 mal True, dann false (zum listview.setfocus ...)
     fJobFifo: TJobFifo; // zum Asynchronen füllen von Job aufträgen, sonst kann es LCL Index Fehler geben
-    Form1ShowOnce: Boolean;
+    GetElementCountBuffer: Array Of TGetElementCountBuffer; // Puffert die Directory Einträge, so dass das Navigieren auf einem Remote device "schneller" geht ;)
     Procedure DiffViewer();
     Procedure AddtoCreateAndAddJobQueue(Item: TListItem; JobType: TJobSubType; SourceDir,
       DestDir: String); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
@@ -280,11 +285,13 @@ Type
     Procedure CreateShortCutL; // Create shortcut button on left panel
     Procedure CopyShortcut;
     Procedure DeleteShortcut;
+    Procedure IncGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
+    Procedure DecGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
-    Procedure LoadDir(Dir: String; Var View: TView);
+    Procedure LoadDir(Dir: String; Var View: TView; ForceElementBufferRefresh: Boolean = false);
     Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
-    Procedure HandleJobQueue(); // Arbeitet die
+    Procedure HandleJobQueue(); // Arbeitet die JobQueue ab und übergibt die Jobs an die Threads
   End;
 
 Var
@@ -614,7 +621,7 @@ Begin
 
   startup := true;
   fJobFifo := TJobFifo.create;
-  Form1ShowOnce := true;
+  GetElementCountBuffer := Nil;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
@@ -835,6 +842,7 @@ Begin
     fWorkThread.OnFileCopyProgress := @OnFileCopyProgress;
     fWorkThread.OnAddSubJobs := @OnAddSubJobs;
     fWorkThread.Start;
+    ListView1.SetFocus;
   End;
 End;
 
@@ -883,14 +891,6 @@ Begin
       AddToJobQueue(job);
     End;
     HandleJobQueue();
-  End;
-End;
-
-Procedure TForm1.FormShow(Sender: TObject);
-Begin
-  If Form1ShowOnce Then Begin
-    Form1ShowOnce := False;
-    ListView1.SetFocus;
   End;
 End;
 
@@ -1043,7 +1043,7 @@ Begin
       t := aView^.ListView.ItemFocused.Caption;
     End;
     aView^.ComboBox.Text := '';
-    LoadDir(aView^.aDirectory, aView^);
+    LoadDir(aView^.aDirectory, aView^, true);
     If t <> '' Then ListViewSelectItem(aView^.ListView, t);
     aView^.ListView.EndUpdate;
     exit;
@@ -1141,6 +1141,7 @@ Begin
     s := InputBox('Action', 'Please enter folder name', 'New Folder');
     If s <> '' Then Begin
       If ForceDirectoriesUTF8(aView^.aDirectory + s) Then Begin
+        IncGetElementCounter(ExcludeTrailingPathDelimiter(aView^.aDirectory));
         LoadDir(aView^.aDirectory, aView^);
         For i := 0 To aListview.Items.Count - 1 Do Begin
           If aListview.Items[i].Caption = s Then Begin
@@ -1600,7 +1601,7 @@ Begin
   fJobFifo.Push(job);
 End;
 
-Procedure TForm1.HandleJobQueue();
+Procedure TForm1.HandleJobQueue;
 Var
   n: TTreeNode;
   job: TJob;
@@ -1665,17 +1666,20 @@ Begin
     jtCopyFile, jtMoveFile,
       jtCopyDir, jtMoveDir: Begin
         s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Dest));
+        IncGetElementCounter(ExcludeTrailingPathDelimiter(s));
         If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
         If s = fRightView.aDirectory Then LoadDir(s, fRightView);
         // Wurde die Datei Verschoben muss die Quelle auch Aktualisiert werden
         If (Job.JobType In [jtMoveFile, jtMoveDir]) Then Begin
           s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Source));
+          decGetElementCounter(ExcludeTrailingPathDelimiter(s));
           If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
           If s = fRightView.aDirectory Then LoadDir(s, fRightView);
         End;
       End;
     jtDelFile, jtDelDir: Begin
         s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Source));
+        decGetElementCounter(ExcludeTrailingPathDelimiter(s));
         If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
         If s = fRightView.aDirectory Then LoadDir(s, fRightView);
       End;
@@ -1857,16 +1861,59 @@ Begin
   LoadShortCutButtons();
 End;
 
-Procedure TForm1.LoadDir(Dir: String; Var View: TView);
+Procedure TForm1.IncGetElementCounter(Const aFolder: String);
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(GetElementCountBuffer) Do Begin
+    If GetElementCountBuffer[i].Folder = aFolder Then Begin
+      GetElementCountBuffer[i].Count := GetElementCountBuffer[i].Count + 1;
+      break;
+    End;
+  End;
+End;
+
+Procedure TForm1.DecGetElementCounter(Const aFolder: String);
+Var
+  i: Integer;
+Begin
+  For i := 0 To high(GetElementCountBuffer) Do Begin
+    If GetElementCountBuffer[i].Folder = aFolder Then Begin
+      GetElementCountBuffer[i].Count := GetElementCountBuffer[i].Count - 1;
+      break;
+    End;
+  End;
+End;
+
+Procedure TForm1.LoadDir(Dir: String; Var View: TView;
+  ForceElementBufferRefresh: Boolean);
 
 (*
  * Gibt die Anzahl an Elementen (Dateien / Ordner) in einem Verzeichnis zurück
  *)
-  Function GetElemtcount(Folder: String): integer;
+  Function GetElementcount(Folder: String): integer;
   Var
     sr: TSearchRec;
+    i: Integer;
+    ElementBufferIndex: Integer;
   Begin
+    // Schon bekannt ?
+    ElementBufferIndex := -1;
+    For i := 0 To high(GetElementCountBuffer) Do Begin
+      If GetElementCountBuffer[i].Folder = Folder Then Begin
+        result := GetElementCountBuffer[i].Count;
+        ElementBufferIndex := i;
+        If Not ForceElementBufferRefresh Then
+          exit;
+      End;
+    End;
     result := 0;
+    // Neues Verzeichnis, Puffern ..
+    If ElementBufferIndex = -1 Then Begin
+      setlength(GetElementCountBuffer, high(GetElementCountBuffer) + 2);
+      ElementBufferIndex := high(GetElementCountBuffer);
+      GetElementCountBuffer[ElementBufferIndex].Folder := Folder;
+    End;
     Folder := IncludeTrailingPathDelimiter(Folder);
     If FindFirstutf8(Folder + '*', faAnyFile, SR) = 0 Then Begin
       Repeat
@@ -1881,6 +1928,7 @@ Procedure TForm1.LoadDir(Dir: String; Var View: TView);
       Until FindNextutf8(SR) <> 0;
       FindCloseutf8(SR);
     End;
+    GetElementCountBuffer[ElementBufferIndex].Count := result;
   End;
 
   Procedure Quick(Li, Re: integer);
@@ -1954,7 +2002,7 @@ Begin
             item.Caption := sr.Name;
             item.ImageIndex := ImageIndexFolder;
             item.SubItems.add('<DIR>');
-            item.SubItems.add(format('(%d)', [GetElemtcount(dir + sr.Name)]));
+            item.SubItems.add(format('(%d)', [GetElementcount(dir + sr.Name)]));
             inc(DirectoryCount);
           End;
         End
