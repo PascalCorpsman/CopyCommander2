@@ -27,14 +27,14 @@ object Form6: TForm6
     Left = 64
     Height = 16
     Top = 16
-    Width = 41
+    Width = 40
     Caption = 'Label3'
   end
   object Label4: TLabel
     Left = 64
     Height = 16
     Top = 72
-    Width = 41
+    Width = 40
     Caption = 'Label4'
   end
   object Button1: TButton
@@ -51,7 +51,7 @@ object Form6: TForm6
     Left = 64
     Height = 22
     Top = 99
-    Width = 72
+    Width = 71
     Caption = 'verbose'
     Checked = True
     State = cbChecked
@@ -125,7 +125,7 @@ object Form6: TForm6
     Left = 160
     Height = 22
     Top = 99
-    Width = 106
+    Width = 108
     Caption = 'md5 compare'
     TabOrder = 8
     OnClick = CheckBox2Click
@@ -134,7 +134,7 @@ object Form6: TForm6
     Left = 64
     Height = 22
     Top = 392
-    Width = 298
+    Width = 294
     Anchors = [akLeft, akBottom]
     Caption = 'Delete empty folders on target when finished'
     TabOrder = 9

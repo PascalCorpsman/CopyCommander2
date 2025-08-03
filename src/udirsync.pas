@@ -38,6 +38,12 @@ Type
 
   TFileList = Array Of TFileEntry;
 
+  TReportInfos = Record
+    RenameInfo: String;
+    CopyInfo: String;
+    DelInfo: String;
+  End;
+
   (*
    * List alle Dateien in und unter aDir ein und gibt deren Relativen Pfad zu aDir als Buffer zurück
    *)
@@ -75,7 +81,7 @@ Function FileSizeToString(Value: int64): String;
 
 Function PrettyTime(Time_in_ms: UInt64): String;
 
-Procedure CreateReportFile(FileName, SourceDir, TargetDir: String; Const RenameList: TRenameList; Const CopyList, DelList: TFileList);
+Procedure CreateReportFile(FileName, SourceDir, TargetDir: String; Const RenameList: TRenameList; Const CopyList, DelList: TFileList; Const Info: TReportInfos);
 
 Implementation
 
@@ -432,7 +438,8 @@ Begin
 End;
 
 Procedure CreateReportFile(FileName, SourceDir, TargetDir: String;
-  Const RenameList: TRenameList; Const CopyList, DelList: TFileList);
+  Const RenameList: TRenameList; Const CopyList, DelList: TFileList;
+  Const Info: TReportInfos);
 Var
   sl: TStringList;
   i: Integer;
@@ -441,7 +448,7 @@ Begin
   TargetDir := IncludeTrailingPathDelimiter(TargetDir);
   sl := TStringList.create;
   If length(RenameList) <> 0 Then Begin
-    sl.add('Renamelist');
+    sl.add('Renamelist;"' + info.RenameInfo + '"');
     sl.add('From;To;');
     For i := 0 To high(RenameList) Do Begin
       sl.add(
@@ -451,7 +458,7 @@ Begin
     End;
   End;
   If length(CopyList) <> 0 Then Begin
-    sl.add('Copylist');
+    sl.add('Copylist;"' + info.CopyInfo + '"');
     sl.add('From;To;');
     For i := 0 To high(CopyList) Do Begin
       sl.add(
@@ -461,7 +468,7 @@ Begin
     End;
   End;
   If length(DelList) <> 0 Then Begin
-    sl.add('DelList');
+    sl.add('DelList;"' + Info.DelInfo + '"');
     sl.add('File');
     For i := 0 To high(DelList) Do Begin
       sl.add(

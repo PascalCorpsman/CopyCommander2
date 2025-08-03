@@ -51,7 +51,7 @@ Type
     Procedure FormCreate(Sender: TObject);
   private
     SourceFiles, DestFiles: TFileList;
-
+    Info: TReportInfos;
     RenameList: TRenameList; // Umbenennungen in Destfiles
     CopyList, // Kopieen von Source nach Dest
     DelList: TFileList; // Löschungen in DestFiles
@@ -151,6 +151,9 @@ Begin
   DelList := Nil;
   GenerateJobLists(label3.Caption, label4.Caption, SourceFiles, DestFiles, RenameList, CopyList, DelList, CheckBox2.Checked);
   AppendTimeDelta('finished generating jobs');
+  info.CopyInfo := FileSizeToString(FileListToSize(CopyList));
+  info.DelInfo := FileSizeToString(FileListToSize(DelList));
+  info.RenameInfo := FileSizeToString(RenameFileListToSize(RenameList));
   s := format(
     LineEnding +
     '%d files of size %s can be renamed' + LineEnding +
@@ -174,7 +177,7 @@ Procedure TForm6.Button3Click(Sender: TObject);
 Begin
   // Export Lists
   If SaveDialog1.Execute Then Begin
-    CreateReportFile(SaveDialog1.FileName, label3.Caption, label4.Caption, RenameList, CopyList, DelList);
+    CreateReportFile(SaveDialog1.FileName, label3.Caption, label4.Caption, RenameList, CopyList, DelList, Info);
   End;
 End;
 
