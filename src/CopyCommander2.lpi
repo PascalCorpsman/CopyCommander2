@@ -38,6 +38,7 @@
       <Unit0>
         <Filename Value="CopyCommander2.lpr"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="project1"/>
       </Unit0>
       <Unit1>
         <Filename Value="unit1.pas"/>

@@ -536,10 +536,11 @@ Var
   Idx: Integer;
 Begin
   If aindex >= Listview.Items.Count Then exit;
+  If Listview.Items[aIndex].Selected Then exit; // Der Eintrag ist schon angewählt ..
   Listview.BeginUpdate;
   Listview.ClearSelection;
 
-  // So hinscrollen, dass man das man den aIndex uberhaupt sehen kann
+  // So hinscrollen, dass man das man den aIndex überhaupt sehen kann
   Listview.Items[aIndex].MakeVisible(False);
 
   // Der Versuch den ausgewählten Eintrag ungefähr "mittig" in der Listview an zu zeigen
@@ -1064,7 +1065,7 @@ Begin
     exit;
   End;
   // Navigation einen Ordner Hoch muss vor der Auswertung auf VK_Return stehen.
-  If key = VK_BACK Then Begin
+  If (key = VK_BACK) And (Not aView^.SearchEdit.Visible) Then Begin
     aListview.ClearSelection;
     aListview.Items[0].Selected := true;
     key := VK_RETURN;
@@ -1217,7 +1218,6 @@ Begin
 {$IFDEF Windows}
       End;
 {$ENDIF}
-
     End;
   End;
   // F5 = Copy
@@ -1258,13 +1258,22 @@ Begin
     aView^.SearchEdit.text := '';
     aView^.SearchEdit.Visible := false;
   End;
-  If (key In [VK_A..VK_Z]) And (Shift = []) Then Begin
-    aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_A + ord('a'));
-    aView^.SearchEdit.Visible := true;
-    For i := 0 To aListview.Items.Count - 1 Do Begin
-      If pos(aView^.SearchEdit.text, lowercase(aListview.Items[i].Caption)) <> 0 Then Begin
-        ListViewSelectItem(aView^.ListView, aListview.Items[i].Caption);
-        break;
+  If ((key In [VK_A..VK_Z]) Or (key = VK_BACK)) And ((Shift = []) Or (ssShift In shift)) Then Begin
+    If key = VK_BACK Then Begin
+      aView^.SearchEdit.text := copy(aView^.SearchEdit.text, 1, length(aView^.SearchEdit.text) - 1);
+    End
+    Else Begin
+      aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_A + ord('a'));
+    End;
+    aView^.SearchEdit.Visible := aView^.SearchEdit.text <> '';
+    key := 0;
+    If aView^.SearchEdit.Visible Then Begin
+      For i := 0 To aListview.Items.Count - 1 Do Begin
+        If pos(aView^.SearchEdit.text, lowercase(aListview.Items[i].Caption)) <> 0 Then Begin
+          caption := aListview.Items[i].Caption;
+          ListViewSelectItemIndex(aView^.ListView, i);
+          break;
+        End;
       End;
     End;
   End;
