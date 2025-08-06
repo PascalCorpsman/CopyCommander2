@@ -99,6 +99,7 @@
 (*               0.16 = ADD: more detailed sync export                        *)
 (*                      ADD: searchstring by typing                           *)
 (*                      ADD: FolderCount Buffering, to speedup navigation     *)
+(*                      ADD: improove keyboard usability                      *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -844,6 +845,7 @@ Begin
     fWorkThread.OnAddSubJobs := @OnAddSubJobs;
     fWorkThread.Start;
     ListView1.SetFocus;
+    ListView2.ClearSelection;
   End;
 End;
 
@@ -1024,7 +1026,11 @@ Begin
    *)
   // Wechsel in die Andere Ansicht
   If key = VK_TAB Then Begin
+    aListview.ClearSelection;
     oListview.SetFocus;
+    If assigned(oListview.ItemFocused) Then Begin
+      oListview.ItemFocused.Selected := true;
+    End;
     key := 0;
     exit;
   End;
@@ -1172,6 +1178,8 @@ Begin
   If key = VK_RETURN Then Begin
     // Ein Verzeichnis wird geöffnet
     If aListview.Selected.SubItems[SubItemIndexEXT] = '<DIR>' Then Begin
+      aView^.SearchEdit.Text := '';
+      aView^.SearchEdit.Visible := false;
       // Ein Ordner Zurück
       If aListview.Selected.caption = '[..]' Then Begin
         s := ExcludeTrailingPathDelimiter(aView^.aDirectory);
@@ -1258,12 +1266,20 @@ Begin
     aView^.SearchEdit.text := '';
     aView^.SearchEdit.Visible := false;
   End;
-  If ((key In [VK_A..VK_Z]) Or (key = VK_BACK)) And ((Shift = []) Or (ssShift In shift)) Then Begin
+  // Eval Hack to support "_" under Linux
+  If (key = $BD) And (ssShift In Shift) Then Begin
+    key := ord('_');
+  End;
+  If ((key In [VK_A..VK_Z, ord('_'), VK_0..VK_9]) Or (key = VK_BACK)) And ((Shift = []) Or (ssShift In shift)) Then Begin
     If key = VK_BACK Then Begin
       aView^.SearchEdit.text := copy(aView^.SearchEdit.text, 1, length(aView^.SearchEdit.text) - 1);
     End
     Else Begin
-      aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_A + ord('a'));
+      Case key Of
+        VK_A..VK_Z: aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_A + ord('a'));
+        ord('_'): aView^.SearchEdit.text := aView^.SearchEdit.text + '_';
+        VK_0..VK_9: aView^.SearchEdit.text := aView^.SearchEdit.text + chr(key - VK_0 + ord('0'));
+      End;
     End;
     aView^.SearchEdit.Visible := aView^.SearchEdit.text <> '';
     key := 0;
