@@ -232,6 +232,8 @@ Type
     Procedure ListView1DblClick(Sender: TObject);
     Procedure ListView1KeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
+    Procedure ListView1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     Procedure ListView1Resize(Sender: TObject);
     Procedure ListView2ColumnClick(Sender: TObject; Column: TListColumn);
     Procedure ListView2DblClick(Sender: TObject);
@@ -1027,6 +1029,8 @@ Begin
   // Wechsel in die Andere Ansicht
   If key = VK_TAB Then Begin
     aListview.ClearSelection;
+    aview^.SearchEdit.Text := '';
+    aview^.SearchEdit.Visible := false;
     oListview.SetFocus;
     If assigned(oListview.ItemFocused) Then Begin
       oListview.ItemFocused.Selected := true;
@@ -1292,6 +1296,25 @@ Begin
         End;
       End;
     End;
+  End;
+End;
+
+Procedure TForm1.ListView1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+Var
+  key: word;
+Begin
+  (*
+   * Unter Linux, wird sonst nicht angezeigt, wenn der User auf die andere
+   * Listview "clickt"
+   * Und unter Windows wird sonst nicht das searchEdit zurückgesetzt..
+   *)
+  key := VK_TAB;
+  If sender = ListView1 Then Begin
+    ListView1KeyDown(ListView2, key, []);
+  End
+  Else Begin
+    ListView1KeyDown(ListView1, key, []);
   End;
 End;
 

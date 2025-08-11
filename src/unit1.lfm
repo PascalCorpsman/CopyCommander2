@@ -103,6 +103,7 @@ object Form1: TForm1
         OnColumnClick = ListView1ColumnClick
         OnDblClick = ListView1DblClick
         OnKeyDown = ListView1KeyDown
+        OnMouseDown = ListView1MouseDown
         OnResize = ListView1Resize
       end
       object StatusBar1: TStatusBar
@@ -218,6 +219,7 @@ object Form1: TForm1
         OnColumnClick = ListView2ColumnClick
         OnDblClick = ListView2DblClick
         OnKeyDown = ListView1KeyDown
+        OnMouseDown = ListView1MouseDown
         OnResize = ListView2Resize
       end
       object Edit2: TEdit
