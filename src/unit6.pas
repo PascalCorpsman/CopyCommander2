@@ -36,10 +36,12 @@ Type
     CheckBox1: TCheckBox;
     CheckBox2: TCheckBox;
     CheckBox3: TCheckBox;
+    Edit1: TEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
+    Label5: TLabel;
     Memo1: TMemo;
     SaveDialog1: TSaveDialog;
     Procedure Button1Click(Sender: TObject);
@@ -75,6 +77,7 @@ Uses unit1, LazFileUtils, LCLType;
 Procedure TForm6.FormCreate(Sender: TObject);
 Begin
   caption := 'Sync';
+  Edit1.text := '.git;.svn';
 End;
 
 Procedure TForm6.Init(Source, Target: String);
@@ -116,6 +119,8 @@ Var
     End;
     oldN := n;
   End;
+Var
+  Excludes: TStringArray;
 Begin
   If Not DirectoryExistsutf8(label3.Caption) Then Begin
     ShowMessage('Error: "' + label3.Caption + '" is not a valid source directory.');
@@ -134,14 +139,19 @@ Begin
   AppendLog('Start: ' + FormatDateTime('YYYY.MM.DD, HH:NN:SS', now));
   SourceFiles := Nil;
   DestFiles := Nil;
+  s := Edit1.Text;
+  s := StringReplace(s, '*', '', [rfReplaceAll]);
+  s := StringReplace(s, ' ', '', [rfReplaceAll]);
+  Excludes := Nil;
+  If s <> '' Then Excludes := s.Split(';');
   // Scan Source and Sort
-  ScanDirToBuffer(label3.Caption, SourceFiles);
+  ScanDirToBuffer(label3.Caption, Excludes, SourceFiles);
   AppendTimeDelta('finished scaning source');
   SortFileList(SourceFiles);
   AppendTimeDelta('finished sorting source');
   AppendLog(format('Found %d files in %s', [length(SourceFiles), label3.Caption]));
   // Scan Dest and Sort
-  ScanDirToBuffer(label4.Caption, DestFiles);
+  ScanDirToBuffer(label4.Caption, Excludes, DestFiles);
   AppendTimeDelta('finished scaning target');
   SortFileList(DestFiles);
   AppendTimeDelta('finished sorting target');

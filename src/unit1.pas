@@ -100,6 +100,7 @@
 (*                      ADD: searchstring by typing                           *)
 (*                      ADD: FolderCount Buffering, to speedup navigation     *)
 (*                      ADD: improove keyboard usability                      *)
+(*                      ADD: exclude in sync                                  *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -325,6 +326,7 @@ Const
   iniLeft = 'Left';
   iniRight = 'Right';
   iniBtn = 'Btn';
+  iniSync = 'Sync';
 
   iniLastDir = 'LastDir';
   iniListDir = 'ListDir';
@@ -334,6 +336,8 @@ Const
   iniCaption = 'Caption';
   iniLink = 'Link';
   iniPosition = 'Position';
+
+  iniExclude = 'Exclude';
 
   extra = '.'; // Extension-Rahmen: Der Rahmen um die Extension muss im Array unten verwendet werden
   {Diese Liste kann leicht erweitert werden. Man muss allerdings selber
@@ -658,6 +662,7 @@ Begin
   finiFile.WriteInteger(iniGeneral, iniAppWidth, Width);
   finiFile.WriteInteger(iniGeneral, iniAppHeight, Height);
   finiFile.Free;
+  finiFile := Nil;
 End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
@@ -1385,9 +1390,13 @@ Procedure TForm1.MenuItem25Click(Sender: TObject);
 Begin
   // Sync
   form6.init(fLeftView.aDirectory, fRightView.aDirectory);
+  form6.Edit1.Text := finiFile.ReadString(iniSync, iniExclude, form6.Edit1.Text);
+
   form6.ShowModal;
   // Wenn Die Jobliste eh schon sichtbar ist, dann zeigen wir, das wir sie Aktualisiert haben ;)
   If form6.ModalResult = mrOK Then Begin
+    finiFile.WriteString(iniSync, iniExclude, form6.Edit1.Text);
+
     If Form2.Visible Then Begin
       Form2.BringToFront;
     End;

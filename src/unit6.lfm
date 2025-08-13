@@ -1,10 +1,10 @@
 object Form6: TForm6
   Left = 339
-  Height = 483
+  Height = 536
   Top = 117
   Width = 803
   Caption = 'Form6'
-  ClientHeight = 483
+  ClientHeight = 536
   ClientWidth = 803
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'
@@ -17,7 +17,7 @@ object Form6: TForm6
     Caption = 'Source'
   end
   object Label2: TLabel
-    Left = 16
+    Left = 8
     Height = 16
     Top = 72
     Width = 39
@@ -60,7 +60,7 @@ object Form6: TForm6
   object Button2: TButton
     Left = 64
     Height = 25
-    Top = 136
+    Top = 168
     Width = 728
     Anchors = [akTop, akLeft, akRight]
     Caption = 'Scan and create report..'
@@ -69,8 +69,8 @@ object Form6: TForm6
   end
   object Memo1: TMemo
     Left = 64
-    Height = 167
-    Top = 176
+    Height = 188
+    Top = 208
     Width = 728
     Anchors = [akTop, akLeft, akRight, akBottom]
     Lines.Strings = (
@@ -84,7 +84,7 @@ object Form6: TForm6
   object Button3: TButton
     Left = 64
     Height = 25
-    Top = 352
+    Top = 405
     Width = 728
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Export lists ..'
@@ -94,7 +94,7 @@ object Form6: TForm6
   object Button4: TButton
     Left = 64
     Height = 25
-    Top = 417
+    Top = 470
     Width = 728
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Apply lists to work queues ..'
@@ -104,7 +104,7 @@ object Form6: TForm6
   object Button5: TButton
     Left = 64
     Height = 25
-    Top = 448
+    Top = 501
     Width = 728
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Cancel'
@@ -133,12 +133,30 @@ object Form6: TForm6
   object CheckBox3: TCheckBox
     Left = 64
     Height = 22
-    Top = 392
+    Top = 445
     Width = 294
     Anchors = [akLeft, akBottom]
     Caption = 'Delete empty folders on target when finished'
     TabOrder = 9
     OnClick = CheckBox2Click
+  end
+  object Label5: TLabel
+    Left = 8
+    Height = 16
+    Top = 136
+    Width = 47
+    Caption = 'Exclude'
+  end
+  object Edit1: TEdit
+    Left = 64
+    Height = 26
+    Hint = 'Type in any "string" that is not to be allowed as part of the filepath or filename,'#10'separated by ";"'#10#10'! Attention ! '#10'Comparing is case sensitive.'
+    Top = 128
+    Width = 728
+    ParentShowHint = False
+    ShowHint = True
+    TabOrder = 10
+    Text = 'Edit1'
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '.csv'

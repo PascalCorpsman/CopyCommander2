@@ -46,8 +46,9 @@ Type
 
   (*
    * List alle Dateien in und unter aDir ein und gibt deren Relativen Pfad zu aDir als Buffer zurück
+   * Excludes = Liste aller Teilstrings die nicht im Verzeichnis / Dateinamen vorkommen dürfen
    *)
-Procedure ScanDirToBuffer(Const aDir: String; Var buffer: TFileList);
+Procedure ScanDirToBuffer(Const aDir: String; Const Excludes: TStringArray; Var buffer: TFileList);
 
 (*
  * Sortiert die Dateiliste (eigentlich egal wonach, hauptsache sortiert..
@@ -90,17 +91,27 @@ Uses LazFileUtils, md5, Dialogs;
 Const
   BufferBlockSize = 1024;
 
-Procedure ScanDirToBuffer(Const aDir: String; Var buffer: TFileList);
+Procedure ScanDirToBuffer(Const aDir: String; Const Excludes: TStringArray;
+  Var buffer: TFileList);
 Var
   BufferCnt: integer;
   CropLen: integer;
 
   Procedure AddFileToBuffer(Const aSubDir: String; Const aFile: TSearchRec);
+  Var
+    FileName: String;
+    i: Integer;
   Begin
+    FileName := aSubDir + aFile.Name;
+    // Excludes dürfen in Verzeichnissen nicht vorkommen
+    For i := 0 To high(Excludes) Do Begin
+      If pos(Excludes[i], FileName) <> 0 Then exit;
+    End;
+
     If BufferCnt >= Length(buffer) Then Begin
       setlength(buffer, length(buffer) + BufferBlockSize);
     End;
-    buffer[BufferCnt].FileName := aSubDir + aFile.Name;
+    buffer[BufferCnt].FileName := FileName;
     delete(buffer[BufferCnt].FileName, 1, CropLen);
     buffer[BufferCnt].FileSize := aFile.Size;
     inc(BufferCnt);
@@ -109,7 +120,12 @@ Var
   Procedure Scan(aSubDir: String);
   Var
     Info: TSearchRec;
+    i: Integer;
   Begin
+    // Excludes dürfen in Verzeichnissen nicht vorkommen
+    For i := 0 To high(Excludes) Do Begin
+      If pos(Excludes[i], aSubDir) <> 0 Then exit;
+    End;
     aSubDir := IncludeTrailingPathDelimiter(aSubDir);
     If FindFirstUTF8(aSubDir + '*', faAnyFile, Info) = 0 Then Begin
       Repeat
