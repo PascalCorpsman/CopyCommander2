@@ -123,7 +123,7 @@ Sets the directory path for either the left or right view.
 **Path:** `/API/zombie/setdir`  
 **Content-Type:** `application/json`
 
-### Post Request Schema
+### Request Schema
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -141,6 +141,6 @@ Sets the directory path for either the left or right view.
 
 ### Example Response
 
-**Status Codes:**
+**HTTP Status Codes:**
 - `204 No Content` - Directory successfully set
 - `422 Unprocessable Entity` - Invalid request data / target dir, does not exist.
