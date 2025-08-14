@@ -146,17 +146,20 @@ Function TRestAPIDummy.Setdir(Sender: TObject; Const aPath: String;
   Const aContent: TJSONObj): Boolean;
 Var
   jv, jd: TJSONValue;
-  dir: String;
+  view, dir: String;
 Begin
   result := false;
   Try
+    view := 'left';
     jv := aContent.FindPath('view') As TJSONValue;
-    If Not assigned(jv) Then exit;
+    If assigned(jv) Then Begin
+      view := trim(jv.Value);
+    End;
     jd := aContent.FindPath('dir') As TJSONValue;
     If Not assigned(jd) Then exit;
     dir := jd.Value;
     If Not DirectoryExists(dir) Then exit;
-    Case lowercase(trim(jv.Value)) Of
+    Case lowercase(view) Of
       'left': form1.LoadDir(dir, form1.fLeftView);
       'right': form1.LoadDir(dir, form1.fRightView);
     Else Begin

@@ -4,7 +4,7 @@ This is the CopyCommander2 Rest API Documentation.
 
 CopyCommander REST API only supports JSON as data format. To see how to enable / setup the REST functionality visit the [rest api](how_to_use.md#rest-api) section in the how_to_use document.
 
-There are 2 kinds of paths supported by CopyCommander2
+There are 2 kinds of paths supported by CopyCommander2.
 
 #### Normal paths:
 Normal paths are always available and can be used to get status, start jobs, ...
@@ -12,9 +12,11 @@ Normal paths are always available and can be used to get status, start jobs, ...
 #### Zombie paths:
 Zombie paths are used to control the application (visible to the user), to enable these paths you need to pass in a extra command line paramter.
 
+## List of available methods / paths
 | Method | Overview | Kind | Description
 | --- | --- | --- | --- |
 | GET | [/API/status](#get-apistatus) | normal | get current state of application
+| GET | [/API/view/list](#get-apiviewlist) | normal | get list of content from a spezific view
 | POST | [/API/zombie/setdir](#post-apizombiesetdir) | zombie | set directory path for left or right view
 
 ## GET /API/status
@@ -26,6 +28,10 @@ Returns the current status of the application.
 **Method:** GET  
 **Path:** `/API/status`  
 **Content-Type:** Not applicable
+
+### Query Parameters
+
+none
 
 ### Response
 
@@ -39,6 +45,12 @@ Returns the current status of the application.
 | `JobQueueCount` | integer | Number of jobs currently in the queue |
 | `LeftDir` | string | Path to the left directory |
 | `RightDir` | string | Path to the right directory |
+
+### Example Request
+
+```
+GET /API/status
+```
 
 ### Example Response
 
@@ -111,11 +123,11 @@ Sets the directory path for either the left or right view.
 **Path:** `/API/zombie/setdir`  
 **Content-Type:** `application/json`
 
-### Request Schema
+### Post Request Schema
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `view` | string | Yes | Must be either "left" or "right" |
+| `view` | string | No | Must be either "left" or "right", default (left) |
 | `dir` | string | Yes | Directory path to set |
 
 ### Example Request
@@ -127,7 +139,7 @@ Sets the directory path for either the left or right view.
 }
 ```
 
-### Response
+### Example Response
 
 **Status Codes:**
 - `204 No Content` - Directory successfully set
