@@ -55,6 +55,18 @@ If you want to use predefined loaddirectories enter the path into one of the edi
 click on that field to open the popup menu, than click "Add". If you want to delete one of the 
 shortcut buttons right click on the button and choose delete.
 
+## REST API
+
+CopyCommander2 has support for the REST-API, with this support you can utilize CopyCommander2 from other applications to execute jobs and even control the application (zombiemode) via REST API.
+
+| Command | Description |
+| --- | --- |
+| -enablerest | only if set, rest is enabled
+| -restport=\<port> | sets the port of the rest server to \<port> (default is 8080)
+| -restzombiemode | if set, the "zombie" commands are also enabled 
+
+To see all supported commands see the [REST](rest.md) documentation
+
 ## License
 see [here](https://github.com/PascalCorpsman/CopyCommander2/blob/main/license.md)
 

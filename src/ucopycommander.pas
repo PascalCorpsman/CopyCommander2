@@ -112,6 +112,7 @@ Type
     Function FileCopy(source, dest: String): Boolean; // Die Funktion, welche das Tatsächliche Datei kopieren macht
     Function getHasErrorJobs: Boolean;
     Function GetHasQuestions: Boolean;
+    Function getPendingJobs: Integer;
 
     Procedure Init(); // Ersatz für Create
     Procedure TearDown(); // Ersatz für Destroy
@@ -134,15 +135,23 @@ Type
     OnFinishJob: TOnJobEvent;
     OnAddSubJobs: TOnAddSubJobs; // Wird aufgerufen, wenn ein Job job so komplex ist dass er in Unterjobs zerlegt wurde
     JobPause: Boolean; // Wenn True, wird das Aktuelle Kopieren Paussiert, Achtung, das darf nicht "PAUSE" heißen sonst verhällt sich der Thread sehr strange.
+
     Property AllResult: TJobAnswers read fAllResult; // Die Antwort auf alle Fragen
     Property HasErrorJobs: Boolean read getHasErrorJobs;
     Property HasQuestions: Boolean read GetHasQuestions;
+    Property PendingJobs: Integer read getPendingJobs;
+
     Procedure Execute; override;
+
     Procedure AddJob(Const Job: TJob);
     Function ExistJob(Const Job: TJob): Boolean;
+
     Function JobsPending(): Boolean; // True, wenn der Worker noch irgendwas zu tun hat...
+
     Procedure CancelAllJobs();
+
     Function PopErrorJob(): TErrorJob;
+
     Procedure CancelJob(Job: TJob); // nimmt den Job aus der internen Bearbeitung und gibt ihn frei
 
     Function TopQuestion(): TJob;
@@ -166,6 +175,11 @@ Function GetDirSize(Directory: String): Int64;
 Function FileSizeToString(Value: Int64): String;
 
 (*
+ * wandelt eine Zeit um in "pretty" Printed String
+ *)
+Function PrettyTime(Time_in_ms: UInt64): String;
+
+(*
  * Wandelt einen Jop in einen Einzeiligen String um
  *)
 Function JobToString(Const Job: TJob): String;
@@ -182,7 +196,6 @@ Function GetEmptySubDirs(aDir: String): TStringList;
 Implementation
 
 Uses
-  //dos, // Für GetFileModifiedTime
   LazFileUtils, LazUTF8, math
 {$IFDEF Windows}
   , windows
@@ -395,6 +408,92 @@ Begin
     result := inttostr(value) + s + 'B'
 End;
 
+(*
+ * Formatiert TimeInmS als möglich hübsche Zeiteinheit
+ *
+ * 0ms bis x Tage [ Jahre werden nicht unterstützt da sonst schaltjahre und ettliches mehr berücksichtigt werden müssen
+ * 0 => 0ms
+ * 500 => 500ms
+ * 1000 => 1s
+ * 1500 => 1,5s
+ * 65000 => 1:05min
+ * 80000 => 1:20min
+ * 3541000 => 59:01min
+ * 3600000 => 1h
+ * 3660000 => 1:01h
+ * 86400000 => 1d
+ * 129600000 => 1d 12h
+ * 30762000000 => 356d 1h
+ *)
+
+Function PrettyTime(Time_in_ms: UInt64): String;
+Var
+  hs, digits, sts, sep, s: String;
+  st, i: integer;
+  b: Boolean;
+Begin
+  s := 'ms';
+  hs := '';
+  sep := DefaultFormatSettings.DecimalSeparator;
+  st := 0;
+  b := false;
+  digits := '3';
+  // [0 .. 60[ s
+  If Time_in_ms >= 1000 Then Begin
+    st := Time_in_ms Mod 1000;
+    Time_in_ms := Time_in_ms Div 1000;
+    s := 's';
+    b := true;
+  End;
+  // [1 .. 60[ min
+  If (Time_in_ms >= 60) And b Then Begin
+    st := Time_in_ms Mod 60;
+    Time_in_ms := Time_in_ms Div 60;
+    s := 'min';
+    sep := DefaultFormatSettings.TimeSeparator;
+    digits := '2';
+  End
+  Else
+    b := false;
+  // [1 .. 24[ h
+  If (Time_in_ms >= 60) And b Then Begin
+    st := Time_in_ms Mod 60;
+    Time_in_ms := Time_in_ms Div 60;
+    s := 'h';
+  End
+  Else
+    b := false;
+  // [1 ..  d
+  If (Time_in_ms >= 24) And b Then Begin
+    st := Time_in_ms Mod 24;
+    Time_in_ms := Time_in_ms Div 24;
+    hs := 'd';
+    If st <> 0 Then s := 'h';
+    sep := ' ';
+    digits := '1';
+  End
+  Else
+    b := false;
+  // Ausgabe mit oder ohne Nachkomma
+  If st <> 0 Then Begin
+    sts := format('%0.' + digits + 'd', [st]);
+    If (s = 's') Then Begin // Bei Sekunden die endenden 0-en löschen
+      For i := length(sts) Downto 1 Do Begin
+        If sts[i] = '0' Then Begin
+          delete(sts, i, 1);
+        End
+        Else Begin
+          break;
+        End;
+      End;
+    End;
+    result := inttostr(Time_in_ms) + hs + sep + sts + s;
+  End
+  Else Begin
+    result := inttostr(Time_in_ms) + s;
+  End;
+End;
+
 Function JobToString(Const Job: TJob): String;
 Begin
   result := 'Error';
@@ -552,6 +651,16 @@ Begin
   Else Begin
     // This could only be happen, if the question was asked before the Thread Inits itself
     result := false;
+  End;
+End;
+
+Function TWorkThread.getPendingJobs: Integer;
+Begin
+  If assigned(FInJobFifo) Then Begin
+    result := FInJobFifo.Count + fSubJubFifo.Count;
+  End
+  Else Begin
+    result := 0;
   End;
 End;
 
@@ -1042,7 +1151,7 @@ End;
 
 Function TWorkThread.JobsPending: Boolean;
 Begin
-  result := (Not FInJobFifo.isempty);
+  result := getPendingJobs() <> 0;
 End;
 
 Procedure TWorkThread.CancelAllJobs;

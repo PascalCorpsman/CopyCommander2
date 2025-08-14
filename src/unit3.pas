@@ -147,7 +147,6 @@ Var
   p: String;
 Begin
   If Li < Re Then Begin
-    // Achtung, das Pivotelement darf nur einmal vor den While schleifen ausgelesen werden, danach nicht mehr !!
     p := arr[Trunc((li + re) / 2)].Filename; // Auslesen des Pivo Elementes
     l := Li;
     r := re;

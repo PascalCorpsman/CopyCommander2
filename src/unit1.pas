@@ -101,6 +101,8 @@
 (*                      ADD: FolderCount Buffering, to speedup navigation     *)
 (*                      ADD: improove keyboard usability                      *)
 (*                      ADD: exclude in sync                                  *)
+(*                      FIX: preserve selection and focus when reloading dir  *)
+(*                      ADD: REST Server                                      *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -121,7 +123,7 @@ Interface
 Uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
   PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types, lclintf,
-  Buttons;
+  Buttons, lNetComponents;
 
 Type
 
@@ -163,6 +165,7 @@ Type
     ImageList1: TImageList;
     ListView1: TListView;
     ListView2: TListView;
+    LTCPComponent1: TLTCPComponent;
     MenuItem1: TMenuItem;
     MenuItem18: TMenuItem;
     MenuItem23: TMenuItem;
@@ -267,7 +270,6 @@ Type
     Procedure Panel2Resize(Sender: TObject);
   private
     fShortCutButtons: Array Of TShortCutButton;
-    fLeftView, fRightView: TView;
     finiFile: TIniFile;
     fButtonPopupTag: Integer;
     startup: boolean; // 1 mal True, dann false (zum listview.setfocus ...)
@@ -293,6 +295,7 @@ Type
     Procedure DecGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
+    fLeftView, fRightView: TView; // Bäh wieder Private machen !
     Procedure LoadDir(Dir: String; Var View: TView; ForceElementBufferRefresh: Boolean = false);
     Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
     Procedure HandleJobQueue(); // Arbeitet die JobQueue ab und übergibt die Jobs an die Threads
@@ -306,6 +309,7 @@ Implementation
 {$R *.lfm}
 
 Uses LazFileUtils, LCLType, math
+  , urestapi // Rest-API
   , unit2 // Progress Dialog
   , Unit3 // Diff Dialog
   , unit4 // Errorlog
@@ -630,10 +634,14 @@ Begin
   startup := true;
   fJobFifo := TJobFifo.create;
   GetElementCountBuffer := Nil;
+
+  CheckAndMaybeEnableRestAPI;
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
 Begin
+  FreeRestAPI;
+
   If fWorkThread.JobsPending Then Begin
     fWorkThread.OnFinishJob := Nil; // Der User Braucht auch nicht mehr sehen dass wir die Löschen
     fWorkThread.CancelAllJobs();
@@ -813,7 +821,9 @@ End;
 
 Procedure TForm1.FormActivate(Sender: TObject);
 Var
-  ds, s: String;
+  ls, ds, s, rs: String;
+  b: Boolean;
+  i: Integer;
 Begin
   // Laden der Letzten Verzeichnisse
   If startup Then Begin
@@ -823,26 +833,44 @@ Begin
     // Laden der Drop-Down-Listen
     cbDirLeft.Items.AddCommaText(finiFile.ReadString(iniLeft, iniListDir, ''));
     cbDirRight.Items.AddCommaText(finiFile.ReadString(iniRight, iniListDir, ''));
-
-    If ParamCount >= 1 Then Begin
-      s := ParamStr(1)
-    End
-    Else Begin
-      s := finiFile.ReadString(iniLeft, iniLastDir, ds);
+    // Eigentliches Laden der Verzeichnis ansichten
+    // Entweder aus den Params oder der Ini
+    s := finiFile.ReadString(iniLeft, iniLastDir, ds);
+    If Not DirectoryExists(s) Then Begin
+      ls := ds;
+    End;
+    // Auslesen des ersten Parameters der nicht mit "-" startet
+    For i := 1 To ParamCount Do Begin
+      If ParamStr(i)[1] <> '-' Then Begin
+        s := ParamStr(i);
+        break;
+      End;
     End;
     If Not DirectoryExists(s) Then Begin
-      s := ds;
+      s := ls;
     End;
     LoadDir(s, fLeftView);
-    If ParamCount > 1 Then Begin
-      s := ParamStr(2)
-    End
-    Else
-      s := finiFile.ReadString(iniRight, iniLastDir, ds);
+    s := finiFile.ReadString(iniRight, iniLastDir, ds);
     If Not DirectoryExists(s) Then Begin
-      s := ds;
+      rs := ds;
+    End;
+    b := false;
+    For i := 1 To ParamCount Do Begin
+      If ParamStr(i)[1] <> '-' Then Begin
+        If b Then Begin
+          s := ParamStr(i);
+          break;
+        End
+        Else Begin
+          b := true;
+        End;
+      End;
+    End;
+    If Not DirectoryExists(s) Then Begin
+      s := rs;
     End;
     LoadDir(s, fRightView);
+
     fWorkThread := TWorkThread.create(true);
     fWorkThread.FreeOnTerminate := false;
     fWorkThread.OnByteTransfereStatistic := @OnByteTransfereStatistic;
@@ -974,7 +1002,7 @@ Procedure TForm1.ListView1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Var
   i, j: Integer;
-  u, t, s, w: String;
+  s, t, u, w: String;
   aListview, oListview: TListView;
   aView, oView: PView; // !! Achtung, hier muss mit den Pointern gearbeitet werden, sonst kann LoadDir die View nicht beschreiben !
 Begin
@@ -993,20 +1021,10 @@ Begin
   // Swap Left Right
   If (ssCtrl In shift) And (key = VK_TAB) Then Begin
     s := fLeftView.aDirectory;
-    u := '';
-    If assigned(fLeftView.ListView.ItemFocused) Then Begin
-      u := fLeftView.ListView.ItemFocused.Caption;
-    End;
     //  Links mit Rechts neu Laden
-    t := '';
-    If assigned(fRightView.ListView.ItemFocused) Then Begin
-      t := fRightView.ListView.ItemFocused.Caption;
-    End;
     LoadDir(fRightView.aDirectory, fLeftView);
-    If t <> '' Then ListViewSelectItem(fLeftView.ListView, t);
     // Rechts mit Links neu Laden
     LoadDir(s, fRightView);
-    If u <> '' Then ListViewSelectItem(fRightView.ListView, u);
     exit;
   End;
   (*
@@ -1052,16 +1070,7 @@ Begin
   End;
   // STRG + R = Verzeichnis neu Laden
   If (ssCtrl In shift) And (key = ord('R')) Then Begin
-    aView^.ListView.BeginUpdate;
-    // Merken des Vorher ausgewählten eintrages, sollte dieser Existieren
-    t := '';
-    If assigned(aView^.ListView.ItemFocused) Then Begin
-      t := aView^.ListView.ItemFocused.Caption;
-    End;
-    aView^.ComboBox.Text := '';
     LoadDir(aView^.aDirectory, aView^, true);
-    If t <> '' Then ListViewSelectItem(aView^.ListView, t);
-    aView^.ListView.EndUpdate;
     exit;
   End;
   // Selektieren via Einfügen
@@ -1126,23 +1135,11 @@ Begin
     If w <> '' Then Begin
       // Aktualisieren der "bearbeitenden" Ansicht
       LoadDir(aView^.aDirectory, aView^);
-      For i := 0 To aListview.Items.Count - 1 Do Begin
-        If aListview.Items[i].Caption = w Then Begin
-          ListViewSelectItemIndex(aListview, i);
-          break;
-        End;
-      End;
+      ListViewSelectItem(aListview, w); // Dadurch, dass etwas umbenannt wurde kann LoadDir das nicht anwählen
       aView^.ListView.SetFocus; // Da ein anderer Dialog aufgegangen ist muss das Listview wieder den Fokus bekommen
       If oview^.aDirectory = aView^.aDirectory Then Begin // Die Andere Ansicht muss auch neu geladen werden
         // Aktualisieren der "anderen" Ansicht
-        w := oListview.ItemFocused.Caption;
         LoadDir(oView^.aDirectory, oView^);
-        For i := 0 To oListview.Items.Count - 1 Do Begin
-          If oListview.Items[i].Caption = w Then Begin
-            ListViewSelectItemIndex(oListview, i);
-            break;
-          End;
-        End;
       End;
     End;
     exit;
@@ -1159,13 +1156,7 @@ Begin
       If ForceDirectoriesUTF8(aView^.aDirectory + s) Then Begin
         IncGetElementCounter(ExcludeTrailingPathDelimiter(aView^.aDirectory));
         LoadDir(aView^.aDirectory, aView^);
-        For i := 0 To aListview.Items.Count - 1 Do Begin
-          If aListview.Items[i].Caption = s Then Begin
-            ListViewSelectItemIndex(aListview, i);
-            aListview.SetFocus;
-            break;
-          End;
-        End;
+        ListViewSelectItem(aListview, s);
         // Wenn Beide seiten das gleiche anzeigen, dann sollte die Andere Ansicht natürlich auch neu geladen werden ..
         If oView^.aDirectory = aView^.aDirectory Then Begin
           LoadDir(oView^.aDirectory, oView^);
@@ -1218,7 +1209,7 @@ Begin
 {$IFDEF Windows}
       If aListview.Selected.SubItems[SubItemIndexEXT] = '<DRIVE>' Then Begin
         LoadDir(aListview.Selected.Caption, aView^);
-        ListViewSelectItemIndex(aListview, 0);
+        // ListViewSelectItemIndex(aListview, 0); -- Wird schon durch Load dir gemacht
         aListview.SetFocus;
         exit;
       End
@@ -1994,7 +1985,6 @@ Procedure TForm1.LoadDir(Dir: String; Var View: TView;
     p: String;
   Begin
     If Li < Re Then Begin
-      // Achtung, das Pivotelement darf nur einam vor den While schleifen ausgelesen werden, danach nicht mehr !!
       p := lowercase(View.ListView.Items[Trunc((li + re) / 2)].Caption); // Auslesen des Pivo Elementes
       l := Li;
       r := re;
@@ -2017,17 +2007,36 @@ Procedure TForm1.LoadDir(Dir: String; Var View: TView;
   End;
 
 Var
-  s: String;
+  FokusedCaption, s: String;
   sr: TSearchRec;
   item: TListItem;
   StartOfFiles, i, FileCount, DirectoryCount: integer;
   TotalFileSize: Int64;
+  sa: TStringArray;
+  saCnt, j: Integer;
 {$IFDEF Windows}
   sl: TStringList;
 {$ENDIF}
 Begin
   DirectoryCount := 0;
   FileCount := 0;
+  sa := Nil;
+  saCnt := 0;
+  FokusedCaption := '';
+  If View.aDirectory = IncludeTrailingPathDelimiter(dir) Then Begin
+    // Es handelt sich um einen "Reload" -> Wir merken uns die Selections
+    setlength(sa, View.ListView.Items.Count);
+    For i := 0 To View.ListView.Items.Count - 1 Do Begin
+      If View.ListView.Items[i].Selected Then Begin
+        sa[saCnt] := View.ListView.Items[i].Caption;
+        inc(saCnt);
+      End;
+    End;
+    // TODO: Unter Linux Geht das nicht, da via SHIFT Pfeiltasten das Itemfocused nicht verschoben wird :(
+    If assigned(View.ListView.ItemFocused) Then Begin
+      FokusedCaption := View.ListView.ItemFocused.Caption;
+    End;
+  End;
   View.ListView.Clear;
   View.ComboBox.Text := dir;
   View.sortstate := 0;
@@ -2072,9 +2081,9 @@ Begin
         If (SR.Attr And FaDirectory = 0) Then Begin
           If (sr.Name <> '.') And (sr.Name <> '..') Then Begin
             (*
-            ACHTUNG dieser Code mus gleich zu dem Code in
+            ACHTUNG dieser Code mus kompatibel zu
 
-            UpdateListView
+            TRestAPIDummy.GetViewList
 
             gehalten werden !!
             *)
@@ -2132,7 +2141,22 @@ Begin
     sl.free;
   End;
 {$ENDIF}
-  ListViewSelectItemIndex(View.ListView, 0);
+  // 1. Anwählen des Aktuellen Eintrags
+  If FokusedCaption = '' Then Begin
+    ListViewSelectItemIndex(View.ListView, 0);
+  End
+  Else Begin
+    ListViewSelectItem(View.ListView, FokusedCaption);
+  End;
+  // eine ggf. selection wieder her stellen
+  For i := 0 To saCnt - 1 Do Begin
+    For j := 0 To View.ListView.Items.Count - 1 Do Begin
+      If sa[i] = View.ListView.Items[j].Caption Then Begin
+        View.ListView.Items[j].Selected := true;
+        break;
+      End;
+    End;
+  End;
   View.ListView.EndUpdate;
 End;
 

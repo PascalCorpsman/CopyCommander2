@@ -854,4 +854,11 @@ object Form1: TForm1
     Left = 512
     Top = 8
   end
+  object LTCPComponent1: TLTCPComponent
+    Port = 0
+    Timeout = 0
+    ReuseAddress = True
+    Left = 512
+    Top = 88
+  end
 end

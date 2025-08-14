@@ -157,7 +157,6 @@ Procedure SortFileList(Var aList: TFileList);
     h: TFileEntry;
   Begin
     If Li < Re Then Begin
-      // Achtung, das Pivotelement darf nur einmal vor den While schleifen ausgelesen werden, danach nicht mehr !!
       p := aList[Trunc((li + re) / 2)].FileName; // Auslesen des Pivo Elementes
       l := Li;
       r := re;

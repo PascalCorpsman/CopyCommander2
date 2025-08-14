@@ -68,94 +68,7 @@ Implementation
 
 {$R *.lfm}
 
-Uses unit1, math;
-
-
-(*
- * Formatiert TimeInmS als möglich hübsche Zeiteinheit
- *
- * 0ms bis x Tage [ Jahre werden nicht unterstützt da sonst schaltjahre und ettliches mehr berücksichtigt werden müssen
- * 0 => 0ms
- * 500 => 500ms
- * 1000 => 1s
- * 1500 => 1,5s
- * 65000 => 1:05min
- * 80000 => 1:20min
- * 3541000 => 59:01min
- * 3600000 => 1h
- * 3660000 => 1:01h
- * 86400000 => 1d
- * 129600000 => 1d 12h
- * 30762000000 => 356d 1h
- *)
-
-Function PrettyTime(Time_in_ms: UInt64): String;
-Var
-  hs, digits, sts, sep, s: String;
-  st, i: integer;
-  b: Boolean;
-Begin
-  s := 'ms';
-  hs := '';
-  sep := DefaultFormatSettings.DecimalSeparator;
-  st := 0;
-  b := false;
-  digits := '3';
-  // [0 .. 60[ s
-  If Time_in_ms >= 1000 Then Begin
-    st := Time_in_ms Mod 1000;
-    Time_in_ms := Time_in_ms Div 1000;
-    s := 's';
-    b := true;
-  End;
-  // [1 .. 60[ min
-  If (Time_in_ms >= 60) And b Then Begin
-    st := Time_in_ms Mod 60;
-    Time_in_ms := Time_in_ms Div 60;
-    s := 'min';
-    sep := DefaultFormatSettings.TimeSeparator;
-    digits := '2';
-  End
-  Else
-    b := false;
-  // [1 .. 24[ h
-  If (Time_in_ms >= 60) And b Then Begin
-    st := Time_in_ms Mod 60;
-    Time_in_ms := Time_in_ms Div 60;
-    s := 'h';
-  End
-  Else
-    b := false;
-  // [1 ..  d
-  If (Time_in_ms >= 24) And b Then Begin
-    st := Time_in_ms Mod 24;
-    Time_in_ms := Time_in_ms Div 24;
-    hs := 'd';
-    If st <> 0 Then s := 'h';
-    sep := ' ';
-    digits := '1';
-  End
-  Else
-    b := false;
-  // Ausgabe mit oder ohne Nachkomma
-  If st <> 0 Then Begin
-    sts := format('%0.' + digits + 'd', [st]);
-    If (s = 's') Then Begin // Bei Sekunden die endenden 0-en löschen
-      For i := length(sts) Downto 1 Do Begin
-        If sts[i] = '0' Then Begin
-          delete(sts, i, 1);
-        End
-        Else Begin
-          break;
-        End;
-      End;
-    End;
-    result := inttostr(Time_in_ms) + hs + sep + sts + s;
-  End
-  Else Begin
-    result := inttostr(Time_in_ms) + s;
-  End;
-End;
+Uses unit1;
 
 { TForm2 }
 
@@ -192,11 +105,11 @@ Begin
   fTPBuffer[fTPBuffer_ptr] := Statistic.TransferedBytesInLast1000ms;
   fTPBuffer_ptr := (fTPBuffer_ptr + 9) Mod length(fTPBuffer);
   Chart1LineSeries2.Add(fTPBufferSum / length(fTPBuffer));
-  AvgPerS := fTPBufferSum div length(fTPBuffer);
+  AvgPerS := fTPBufferSum Div length(fTPBuffer);
   TimeInmS := 0;
   If AvgPerS <> 0 Then Begin
     TimeInmS := 1000; // Force Calculations to be done in uint64
-    TimeInmS := (Statistic.BytesToCopyToFinishJobs * TimeInmS) div AvgPerS;
+    TimeInmS := (Statistic.BytesToCopyToFinishJobs * TimeInmS) Div AvgPerS;
   End;
   TimeInmS := TimeInmS - (TimeInmS Mod 1000); // die ms 0en das macht so eigentlich keinen Sinn.
   Label4.Caption := 'Average: ' + FileSizeToString(AvgPerS) + '/s, actual: ' + FileSizeToString(Statistic.TransferedBytesInLast1000ms) + '/s';
