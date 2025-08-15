@@ -136,10 +136,12 @@ Function TRestAPIDummy.GetStatus(Sender: TObject; Const aPath: String;
 Var
   jn: TJSONNode;
   iqc: integer;
+  busy: Boolean;
 Begin
   iqc := form1.fWorkThread.PendingJobs;
+  busy := form1.fWorkThread.Busy Or form1.fWorkThread.HasQuestions;
   jn := TJSONNode.Create;
-  jn.AddObj(TJSONValue.Create('State', specialize ifthen < String > (iqc = 0, '0', '1'), false));
+  jn.AddObj(TJSONValue.Create('State', specialize ifthen < String > (Busy, '0', '1'), false));
   jn.AddObj(TJSONValue.Create('JobQueueCount', inttostr(iqc), false));
   jn.AddObj(TJSONValue.Create('LeftDir', form1.fLeftView.aDirectory, true));
   jn.AddObj(TJSONValue.Create('RightDir', form1.fRightView.aDirectory, true));

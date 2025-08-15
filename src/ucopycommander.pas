@@ -92,6 +92,7 @@ Type
 
   TWorkThread = Class(TThread)
   private
+    fBusy: integer; // 0 = nichts mehr zu tun, > 0 Wir arbeiten noch irgendwas..
     fAJob: TJob; // Der Job der Im Moment Abgearbeitet wird.
     fJobProgress: Byte; // Fortschritt in Prozent füf den Aktuellen Job
     fStatistic: TTransfereStatistic;
@@ -146,7 +147,7 @@ Type
     Procedure AddJob(Const Job: TJob);
     Function ExistJob(Const Job: TJob): Boolean;
 
-    Function JobsPending(): Boolean; // True, wenn der Worker noch irgendwas zu tun hat...
+    Function Busy: Boolean; // True, wenn der Worker noch irgendwas zu tun hat...
 
     Procedure CancelAllJobs();
 
@@ -533,11 +534,13 @@ Var
   BufferSize: Integer;
   FreeDiskSpace: Int64;
 Begin
+  inc(fBusy);
   fCopyFileDetailError := 'Unknown error';
   Result := False;
   If FCancelallJobs Or fCancelActualJob Or (source = dest) Then Begin
     fCopyFileDetailError := '';
     result := true;
+    dec(fBusy);
     exit;
   End;
   // Sicherstellen das dest nicht existiert, Die Fälle wo es existieren darf und
@@ -545,6 +548,7 @@ Begin
   If FileExistsUTF8(dest) Then Begin
     If Not DeleteFileUTF8(dest) Then Begin
       fCopyFileDetailError := 'Could not delete dest file';
+      dec(fBusy);
       exit;
     End;
   End;
@@ -552,6 +556,7 @@ Begin
     SourceFile := FileOpen(utf8tosys(source), fmOpenRead);
     If SourceFile = 0 Then Begin
       fCopyFileDetailError := 'Unable to read source file';
+      dec(fBusy);
       exit;
     End;
     (*
@@ -564,12 +569,14 @@ Begin
     FreeDiskSpace := GetFreeDiskSpaceOf(ExtractFilePath(dest));
     If FreeDiskSpace <= RemainingFileSize Then Begin
       fCopyFileDetailError := 'Not enough diskspace at destination available';
+      dec(fBusy);
       exit;
     End;
     DestFile := FileCreate(utf8tosys(dest));
     If DestFile = 0 Then Begin
       fCopyFileDetailError := 'Unable to create destination file';
       FileClose(SourceFile);
+      dec(fBusy);
       exit;
     End;
     FileSeek(SourceFile, 0, fsFromBeginning);
@@ -580,6 +587,7 @@ Begin
         FileClose(SourceFile);
         fCopyFileDetailError := '';
         result := true; // Das Stimmt zwar nicht, erzeugt aber im Abgang die wenigsten Fehler, Störungen
+        dec(fBusy);
         exit;
       End;
       If JobPause Then Begin
@@ -593,6 +601,7 @@ Begin
           FileClose(SourceFile);
           FileClose(DestFile);
           fCopyFileDetailError := 'Sourcefile read error';
+          dec(fBusy);
           exit;
         End;
         If FileWrite(DestFile, buffer, BufferSize) = -1 Then Begin
@@ -600,6 +609,7 @@ Begin
           FileClose(SourceFile);
           FileClose(DestFile);
           fCopyFileDetailError := 'Destfile write error';
+          dec(fBusy);
           exit;
         End;
         // Und noch die Statistik Nach ziehen
@@ -625,10 +635,12 @@ Begin
     // KA was ich da noch Vergessen habe
     On AV: Exception Do Begin
       fCopyFileDetailError := av.Message;
+      dec(fBusy);
       exit;
     End;
   End;
   fCopyFileDetailError := '';
+  dec(fBusy);
   Result := True;
 End;
 
@@ -666,6 +678,7 @@ End;
 
 Procedure TWorkThread.Init;
 Begin
+  fBusy := 0;
   fLCLSubJobArray := Nil;
   fAllResult := jaNotChoosen;
   FCancelallJobs := false;
@@ -831,12 +844,14 @@ Var
 Begin
   result := false;
   If Not assigned(fAJob) Then exit;
+  inc(fBusy);
   If FCancelallJobs Or fCancelActualJob Then Begin
     // Beim Abcanceln der Jobs rufen wir den FinishJob dennoch auf, damit die LCL die Chance hat diesen aus ihren Listen zu streichen..
     If Assigned(OnFinishJob) Then Begin
       Synchronize(@LCLOnFinishJob);
     End;
     result := true;
+    dec(fbusy);
     exit;
   End;
   If Assigned(OnStartJob) Then Begin
@@ -848,11 +863,13 @@ Begin
     jtMoveFile, jtCopyFile: Begin
         If Not FileExistsUTF8(fAJob.Source) Then Begin
           AddToErrorLog('Source file does not exist anymore.');
+          dec(fBusy);
           exit;
         End;
         // Ziel Verzeichnis erstellen
         If Not ForceDirectoriesUTF8(ExtractFileDir(fAJob.Dest)) Then Begin
           AddToErrorLog('Unable to create destination folder.');
+          dec(fBusy);
           exit;
         End;
         If FileExistsUTF8(fAJob.Dest) Then Begin
@@ -864,6 +881,7 @@ Begin
               Synchronize(@LCLOnFinishJob);
             End;
             result := true;
+            dec(fBusy);
             exit;
           End
           Else Begin
@@ -878,6 +896,7 @@ Begin
                     Synchronize(@LCLOnFinishJob);
                   End;
                   FQuestionJobFifo.Push(fAJob);
+                  dec(fBusy);
                   exit;
                 End;
               jaSkip: Begin
@@ -886,11 +905,13 @@ Begin
                     Synchronize(@LCLOnFinishJob);
                   End;
                   result := true;
+                  dec(fBusy);
                   exit;
                 End;
               jaReplace: Begin
                   If Not DeleteFileUTF8(fAJob.Dest) Then Begin
                     AddToErrorLog('Unable to delete destination file.');
+                    dec(fBusy);
                     exit;
                   End;
                 End;
@@ -899,11 +920,13 @@ Begin
         End;
         If Not FileCopy(fAJob.Source, fAJob.Dest) Then Begin
           AddToErrorLog('Unable to copy file to destination folder: ' + fCopyFileDetailError);
+          dec(fBusy);
           exit;
         End;
         If fAJob.JobType = jtMoveFile Then Begin
           If Not DeleteFileUTF8(fAJob.Source) Then Begin
             AddToErrorLog('Unable to delete file.');
+            dec(fBusy);
             exit;
           End;
         End;
@@ -911,12 +934,14 @@ Begin
     jtMoveDir, jtCopyDir: Begin
         If Not DirectoryExistsUTF8(fAJob.Source) Then Begin
           AddToErrorLog('Source directory does not exist anymore.');
+          dec(fBusy);
           exit;
         End;
         // Ziel Ordner Erstellen
         s := extractfilename(ExcludeTrailingPathDelimiter(fAJob.Source));
         If Not ForceDirectoriesUTF8(IncludeTrailingPathDelimiter(fAJob.Dest) + s) Then Begin
           AddToErrorLog('Unable to create dest dir.');
+          dec(fBusy);
           exit;
         End;
         // Rekursiv Verschieben / Kopieren
@@ -949,6 +974,7 @@ Begin
     jtDelFile: Begin
         If Not DeleteFileUTF8(fAJob.Source) Then Begin
           AddToErrorLog('Unable to delete file.');
+          dec(fBusy);
           exit;
         End;
       End;
@@ -967,6 +993,7 @@ Begin
     jtDelDir: Begin
         If Not DelFolder(fAJob.Source) Then Begin
           AddToErrorLog('Unable to delete folder.');
+          dec(fBusy);
           exit;
         End;
       End;
@@ -975,6 +1002,7 @@ Begin
     Synchronize(@LCLOnFinishJob);
   End;
   result := true;
+  dec(fbusy);
 End;
 
 Procedure TWorkThread.CheckForOnFileTransfereStatistic;
@@ -1149,9 +1177,9 @@ Begin
   result := FInJobFifo.ContainsElement(job, @CompareJobs);
 End;
 
-Function TWorkThread.JobsPending: Boolean;
+Function TWorkThread.Busy: Boolean;
 Begin
-  result := getPendingJobs() <> 0;
+  result := (getPendingJobs() <> 0) Or (fBusy > 0);
 End;
 
 Procedure TWorkThread.CancelAllJobs;

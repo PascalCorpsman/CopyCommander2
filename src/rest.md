@@ -1,4 +1,4 @@
-# REST-API
+# CopyCommander2, REST-API
 
 This is the CopyCommander2 Rest API Documentation.
 

@@ -646,10 +646,10 @@ Begin
   FreeRestAPI;
   Workthread_reference := fWorkThread;
   fWorkThread := Nil; // Das sorgt dafür, dass der On Idle Handler nichts mehr macht ;)
-  If Workthread_reference.JobsPending Then Begin
+  If Workthread_reference.Busy Then Begin
     Workthread_reference.OnFinishJob := Nil; // Der User Braucht auch nicht mehr sehen dass wir die Löschen
     Workthread_reference.CancelAllJobs();
-    While Workthread_reference.JobsPending Do Begin
+    While Workthread_reference.Busy Do Begin
       sleep(1);
     End;
   End;
@@ -679,7 +679,7 @@ End;
 
 Procedure TForm1.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
 Begin
-  If fWorkThread.JobsPending Then Begin
+  If fWorkThread.Busy Then Begin
     If ID_NO = Application.MessageBox(pchar('File / Dir copying not yet finished.' + LineEnding + 'Are you shure you want to close, this will cancel all your jobs.'), 'Warning', MB_YESNO Or MB_ICONWARNING) Then Begin
       CanClose := false;
     End;
