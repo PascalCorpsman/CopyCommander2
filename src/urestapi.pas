@@ -141,7 +141,7 @@ Begin
   iqc := form1.fWorkThread.PendingJobs;
   busy := form1.fWorkThread.Busy Or form1.fWorkThread.HasQuestions;
   jn := TJSONNode.Create;
-  jn.AddObj(TJSONValue.Create('State', specialize ifthen < String > (Busy, '0', '1'), false));
+  jn.AddObj(TJSONValue.Create('State', specialize ifthen < String > (Busy, '1', '0'), false));
   jn.AddObj(TJSONValue.Create('JobQueueCount', inttostr(iqc), false));
   jn.AddObj(TJSONValue.Create('LeftDir', form1.fLeftView.aDirectory, true));
   jn.AddObj(TJSONValue.Create('RightDir', form1.fRightView.aDirectory, true));

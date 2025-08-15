@@ -747,6 +747,10 @@ Function TWorkThread.DoJob: Boolean;
     ja: TJobArray;
     i: Integer;
   Begin
+    // Sicherstellen Das das Zielverzeichnis auch existiert, da es auch ein Ordner mit nur leeren Ordnern sein kan muss das hier gemacht werden
+    If Not ForceDirectoriesUTF8(ADestFolder) Then Begin
+      exit;
+    End;
     ja := Nil;
     If FindFirstutf8(IncludeTrailingPathDelimiter(aSourceFolder) + '*', faAnyFile, SR) = 0 Then Begin
       Repeat

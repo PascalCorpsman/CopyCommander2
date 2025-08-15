@@ -104,6 +104,7 @@
 (*                      FIX: preserve selection and focus when reloading dir  *)
 (*                      ADD: REST Server                                      *)
 (*                      FIX: did not refresh folder if subfolder was deleted  *)
+(*                      FIX: copying empty subfolders did not work            *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
