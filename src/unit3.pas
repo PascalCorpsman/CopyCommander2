@@ -238,7 +238,6 @@ Begin
       form1.AddToJobQueue(job);
     End;
   End;
-  Form1.HandleJobQueue();
   close;
 End;
 

@@ -1,3 +1,17 @@
+(******************************************************************************)
+(*                                                                            *)
+(* Author      : Uwe Schächterle (Corpsman)                                   *)
+(*                                                                            *)
+(* This file is part of CopyCommander2                                        *)
+(*                                                                            *)
+(*  See the file license.md, located under:                                   *)
+(*  https://github.com/PascalCorpsman/Software_Licenses/blob/main/license.md  *)
+(*  for details about the license.                                            *)
+(*                                                                            *)
+(*               It is not allowed to change or remove this text from any     *)
+(*               source file of the project.                                  *)
+(*                                                                            *)
+(******************************************************************************)
 Unit urestapi;
 
 {$MODE ObjFPC}{$H+}
@@ -7,29 +21,46 @@ Interface
 Uses
   Classes, SysUtils;
 
+(*
+ * Prüft die ParamStr und startet ggf die Rest-API
+ *)
 Procedure CheckAndMaybeEnableRestAPI;
+
+(*
+ * Gibt die Rest-API wieder frei (onClose)
+ *)
 Procedure FreeRestAPI;
 
 Implementation
 
-Uses unit1, urest, uJSON;
+Uses LazFileUtils, unit1
+  , urest
+  , uJSON
+  , ucopycommander
+  ;
 
 Type
+
+  (*
+   * TRestServer benötigt für alle seine Callbacks Classen Methoden, also hier die Dummy Klasse die das bereit stellt ;)
+   *)
 
   { TRestAPIDummy }
 
   TRestAPIDummy = Class
   private
     fServer: TRestServer;
+    Function TextNode(aName, aText: String): TJSONObj;
     (*
-     * Alle Getter
+     * Alle Get Methoden
      *)
     Function GetStatus(Sender: TObject; Const aPath: String; Const HTTPHeader: tstrings): TJSONobj;
     Function GetViewList(Sender: TObject; Const aPath: String; Const HTTPHeader: tstrings): TJSONobj;
     (*
-     * Alle Setter
+     * Alle Post Methoden
      *)
-    Function Setdir(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): Boolean;
+    Function Setdir(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): TPostResult;
+    Function Job(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): TPostResult;
   public
     Constructor Create; virtual;
     Destructor Destroy; override;
@@ -62,7 +93,43 @@ Begin
   End;
 End;
 
+Procedure FreeRestAPI;
+Begin
+  If assigned(RestAPIDummy) Then RestAPIDummy.free;
+  RestAPIDummy := Nil;
+End;
+
 { TRestAPIDummy }
+
+Constructor TRestAPIDummy.Create;
+Begin
+  Inherited Create;
+  fServer := TRestServer.Create(form1.LTCPComponent1);
+End;
+
+Destructor TRestAPIDummy.Destroy;
+Begin
+  fServer.free;
+  fServer := Nil;
+End;
+
+Procedure TRestAPIDummy.InitRestAPI(Port: Integer; ZombieMode: Boolean);
+Begin
+  fServer.RegisterGetHandler('/api/status', @GetStatus);
+  fServer.RegisterGetHandler('/api/view/list', @GetViewList);
+  fServer.RegisterPostHandler('/api/job', @Job);
+
+  If ZombieMode Then Begin
+    fServer.RegisterPostHandler('/api/zombie/setdir', @Setdir);
+  End;
+  fServer.Listen(Port);
+End;
+
+Function TRestAPIDummy.TextNode(aName, aText: String): TJSONObj;
+Begin
+  result := TJSONNode.Create;
+  TJSONNode(result).AddObj(TJSONValue.Create(aName, atext, true));
+End;
 
 Function TRestAPIDummy.GetStatus(Sender: TObject; Const aPath: String;
   Const HTTPHeader: tstrings): TJSONobj;
@@ -89,7 +156,6 @@ Var
   aView: TView;
   i: Integer;
 Begin
-  jn := TJSONNode.Create;
   // Parameter Auswerten
   view := 'left';
   params := Nil;
@@ -104,7 +170,6 @@ Begin
       view := params[0].Value;
   End;
   view := lowercase(view);
-  result := jn;
   Case view Of
     'left': Begin
         aView := Form1.fLeftView;
@@ -114,15 +179,17 @@ Begin
       End;
   Else Begin
       // Fehler
-      jn.AddObj(TJSONValue.Create('msg', 'Error: invalid view', true));
+      result := TextNode('msg', 'Error: invalid view');
       exit;
     End;
   End;
+  jn := TJSONNode.Create;
   jn.AddObj(TJSONValue.Create('dir', aView.aDirectory, true));
   files := TJSONArray.Create;
   folders := TJSONArray.Create;
   jn.AddObj(TJSONNodeObj.Create('folders', folders));
   jn.AddObj(TJSONNodeObj.Create('files', files));
+  result := jn;
   (*
    * ACHTUNG erstellt wurde das mit TForm1.LoadDir, ändert sich dort was so auch hier!
    *)
@@ -143,12 +210,13 @@ Begin
 End;
 
 Function TRestAPIDummy.Setdir(Sender: TObject; Const aPath: String;
-  Const aContent: TJSONObj): Boolean;
+  Const aContent: TJSONObj): TPostResult;
 Var
   jv, jd: TJSONValue;
   view, dir: String;
 Begin
-  result := false;
+  result.HTTPCode := 422;
+  result.Content := Nil;
   Try
     view := 'left';
     jv := aContent.FindPath('view') As TJSONValue;
@@ -156,49 +224,103 @@ Begin
       view := trim(jv.Value);
     End;
     jd := aContent.FindPath('dir') As TJSONValue;
-    If Not assigned(jd) Then exit;
+    If Not assigned(jd) Then Raise exception.create('dir not set.');
     dir := jd.Value;
-    If Not DirectoryExists(dir) Then exit;
+    If Not DirectoryExists(dir) Then Raise exception.create('dir does not exist.');
     Case lowercase(view) Of
       'left': form1.LoadDir(dir, form1.fLeftView);
       'right': form1.LoadDir(dir, form1.fRightView);
     Else Begin
+        Raise exception.create('Error: invalid view');
+      End;
+    End;
+    result.HTTPCode := 204;
+    // Kein Content notwendig ;)
+  Except
+    On av: Exception Do Begin
+      result.Content := TextNode('msg', av.Message);
+    End;
+  End;
+End;
+
+Function TRestAPIDummy.Job(Sender: TObject; Const aPath: String;
+  Const aContent: TJSONObj): TPostResult;
+
+Var
+  TargetFolder, Operation, Source, Target: String;
+  IsFile: Boolean;
+  j: TJob;
+Begin
+  result.HTTPCode := 422;
+  result.Content := Nil; // Das löst wenn nicht gesetzt im server eine AV aus, da 422 einen Content bedingt !
+  Try
+    Operation := lowercase(TJSONValue(aContent.FindPath('operation')).Value);
+    Source := TJSONValue(aContent.FindPath('source')).Value;
+    isFile := FileExistsUTF8(Source);
+    If Not IsFile Then Begin
+      If Not DirectoryExistsUTF8(Source) Then Begin
+        Raise Exception.Create('Error: "' + Source + '" does not exist.');
+      End;
+    End;
+    Target := '';
+    TargetFolder := '';
+    If (Operation = 'copy') Or
+      (Operation = 'move') Then Begin
+      Target := TJSONValue(aContent.FindPath('target')).Value;
+      If isFile Then Begin
+        TargetFolder := ExtractFilePath(Target);
+      End
+      Else Begin
+        TargetFolder := Target;
+      End;
+      // Primitivster Versuch zu prüfen ob der Job scheitern wird..
+      If Not ForceDirectoriesUTF8(TargetFolder) Then Begin
+        result.Content := TextNode('msg', 'Error: unable to create target path.');
         exit;
       End;
     End;
-    result := true;
+    j := TJob.Create();
+    If IsFile Then Begin
+      Case Operation Of
+        'copy': j.JobType := jtCopyFile;
+        'move': j.JobType := jtMoveFile;
+        'delete': j.JobType := jtDelFile;
+      Else Begin
+          j.free;
+          result.HTTPCode := 400;
+          result.Content := TextNode('msg', 'Error: invalid operation');
+          exit;
+        End;
+      End;
+    End
+    Else Begin
+      // Die Jobs verlangen dass Verzeichnisse immer mit dem Pathdelim enden !
+      source := IncludeTrailingPathDelimiter(source);
+      Target := IncludeTrailingPathDelimiter(Target);
+      Case Operation Of
+        'copy': j.JobType := jtCopyDir;
+        'move': j.JobType := jtMoveDir;
+        'delete': j.JobType := jtDelDir;
+        'delete_empty_subfolders': j.JobType := jtDelEmptyFolders;
+      Else Begin
+          j.free;
+          result.HTTPCode := 400;
+          result.Content := TextNode('msg', 'Error: invalid operation');
+          exit;
+        End;
+      End;
+    End;
+    j.Source := Source;
+    j.Dest := Target;
+    form1.AddToJobQueue(j);
+    result.HTTPCode := 201;
+    result.Content := TextNode('status', 'queued');
   Except
-    // Nichts ist ja alles schon passend gesetzt..
+    On av: Exception Do Begin
+      result.HTTPCode := 400;
+      result.Content := TextNode('msg', av.Message);
+    End;
   End;
-End;
-
-Constructor TRestAPIDummy.Create;
-Begin
-  Inherited Create;
-  fServer := TRestServer.Create(form1.LTCPComponent1);
-End;
-
-Destructor TRestAPIDummy.Destroy;
-Begin
-  fServer.free;
-  fServer := Nil;
-End;
-
-Procedure TRestAPIDummy.InitRestAPI(Port: Integer; ZombieMode: Boolean);
-Begin
-  fServer.RegisterGetHandler('/api/status', @GetStatus);
-  fServer.RegisterGetHandler('/api/view/list', @GetViewList);
-
-  If ZombieMode Then Begin
-    fServer.RegisterPostHandler('/api/zombie/setdir', @Setdir);
-  End;
-  fServer.Listen(Port);
-End;
-
-Procedure FreeRestAPI;
-Begin
-  If assigned(RestAPIDummy) Then RestAPIDummy.free;
-  RestAPIDummy := Nil;
 End;
 
 End.

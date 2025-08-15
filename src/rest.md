@@ -113,6 +113,76 @@ GET /API/view/list?view=right
 }
 ```
 
+## POST /API/jobs
+
+Creates a new job to copy, move, or delete files/folders.
+
+### Request
+
+**Method:** POST  
+**Path:** `/API/jobs`  
+**Content-Type:** `application/json`
+
+### Request Schema
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `operation` | string | Yes | Type of operation: "copy", "move", "delete" or "delete_empty_subfolders" |
+| `source` | string | Yes | Source file or directory path |
+| `target` | string | Conditional | Target directory path (required for "copy" and "move", ignored for "delete" or "delete_empty_subfolders") |
+
+### Example Requests
+
+**Copy operation:**
+```json
+{
+    "operation": "copy",
+    "source": "C:\\Users\\john\\Documents\\file.txt",
+    "target": "C:\\Users\\john\\Backup"
+}
+```
+
+**Move operation:**
+```json
+{
+    "operation": "move",
+    "source": "C:\\Users\\john\\Documents\\folder",
+    "target": "C:\\Users\\john\\Archive"
+}
+```
+
+**Delete operation:**
+```json
+{
+    "operation": "delete",
+    "source": "C:\\Users\\john\\Documents\\temp.txt"
+}
+```
+
+### Response
+
+**HTTP Status Codes:**
+- `201 Created` - Job successfully created and queued
+- `400 Bad Request` - Invalid operation type or missing required fields
+- `404 Not Found` - Source file/directory does not exist
+- `422 Unprocessable Entity` - Invalid paths or target directory does not exist
+
+**Content-Type:** `application/json`
+
+### Response Schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `status` | string | Current job status ("queued") |
+
+### Example Response
+
+```json
+{
+    "status": "queued"
+}
+```
+
 ## POST /API/zombie/setdir
 
 Sets the directory path for either the left or right view.
@@ -139,7 +209,7 @@ Sets the directory path for either the left or right view.
 }
 ```
 
-### Example Response
+### Response
 
 **HTTP Status Codes:**
 - `204 No Content` - Directory successfully set

@@ -74,7 +74,6 @@ Begin
   If listbox1.ItemIndex <> -1 Then Begin
     form1.AddToJobQueue(TJob(ListBox1.Items.Objects[listbox1.ItemIndex]));
     ListBox1.Items.Delete(listbox1.ItemIndex);
-    Form1.HandleJobQueue();
   End;
 End;
 

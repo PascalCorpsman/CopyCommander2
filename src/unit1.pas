@@ -103,6 +103,7 @@
 (*                      ADD: exclude in sync                                  *)
 (*                      FIX: preserve selection and focus when reloading dir  *)
 (*                      ADD: REST Server                                      *)
+(*                      FIX: did not refresh folder if subfolder was deleted  *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -293,12 +294,12 @@ Type
     Procedure DeleteShortcut;
     Procedure IncGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
     Procedure DecGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
+    Procedure HandleJobQueue(); // Übernimmt alle Jobs die via AddToJobQueue eingetragen wurden ;)
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
     fLeftView, fRightView: TView; // Bäh wieder Private machen !
     Procedure LoadDir(Dir: String; Var View: TView; ForceElementBufferRefresh: Boolean = false);
-    Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein, zum Übernehmen muss HandleJobQueue aufgerufen werden !
-    Procedure HandleJobQueue(); // Arbeitet die JobQueue ab und übergibt die Jobs an die Threads
+    Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein
   End;
 
 Var
@@ -639,17 +640,20 @@ Begin
 End;
 
 Procedure TForm1.FormClose(Sender: TObject; Var CloseAction: TCloseAction);
+Var
+  Workthread_reference: TWorkThread;
 Begin
   FreeRestAPI;
-
-  If fWorkThread.JobsPending Then Begin
-    fWorkThread.OnFinishJob := Nil; // Der User Braucht auch nicht mehr sehen dass wir die Löschen
-    fWorkThread.CancelAllJobs();
-    While fWorkThread.JobsPending Do Begin
+  Workthread_reference := fWorkThread;
+  fWorkThread := Nil; // Das sorgt dafür, dass der On Idle Handler nichts mehr macht ;)
+  If Workthread_reference.JobsPending Then Begin
+    Workthread_reference.OnFinishJob := Nil; // Der User Braucht auch nicht mehr sehen dass wir die Löschen
+    Workthread_reference.CancelAllJobs();
+    While Workthread_reference.JobsPending Do Begin
       sleep(1);
     End;
   End;
-  fWorkThread.Terminate;
+  Workthread_reference.Terminate;
   (*
    * theoretisch Idled der Thread im 1ms takt, d.h. nach 10ms ist er auf jeden Fall weg.
    *)
@@ -659,8 +663,8 @@ Begin
   fJobFifo.free;
   fJobFifo := Nil;
   Sleep(10);
-  fWorkThread.free;
-  fWorkThread := Nil;
+  Workthread_reference.free;
+  Workthread_reference := Nil;
 
   finiFile.WriteString(iniLeft, iniLastDir, cbDirLeft.text);
   finiFile.WriteString(iniRight, iniLastDir, cbDirRight.text);
@@ -700,7 +704,6 @@ Begin
         j := fWorkThread.PopQuestion();
         j.Answer := fWorkThread.AllResult;
         AddToJobQueue(j);
-        HandleJobQueue();
       End
       Else Begin
         form5.ModalResult := mrNone;
@@ -719,7 +722,6 @@ Begin
                 j.ToAll := true;
                 j.Answer := jaSkip;
                 AddToJobQueue(j);
-                HandleJobQueue();
               End
               Else Begin
                 j.free;
@@ -730,11 +732,11 @@ Begin
               j.ToAll := Form5.CheckBox1.Checked;
               j.Answer := jaReplace;
               AddToJobQueue(j);
-              HandleJobQueue();
             End;
         End;
       End;
     End;
+    HandleJobQueue();
   End;
   sleep(1);
 End;
@@ -928,7 +930,6 @@ Begin
       End;
       AddToJobQueue(job);
     End;
-    HandleJobQueue();
   End;
 End;
 
@@ -1057,6 +1058,10 @@ Begin
     oListview.SetFocus;
     If assigned(oListview.ItemFocused) Then Begin
       oListview.ItemFocused.Selected := true;
+    End
+    Else Begin
+      // Wir wählen eins in der "Nähe" aus, oder wenn der Itemindex auch kaputt ist, eben das 1.
+      ListViewSelectItemIndex(oListview, max(0, min(oListview.ItemIndex, oListview.Items.Count - 1)));
     End;
     key := 0;
     exit;
@@ -1222,7 +1227,6 @@ Begin
             AddtoCreateAndAddJobQueue(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
           End;
         End;
-        HandleJobQueue();
 {$IFDEF Windows}
       End;
 {$ENDIF}
@@ -1237,7 +1241,6 @@ Begin
         AddtoCreateAndAddJobQueue(aListview.Items[i], jsCopy, aView^.aDirectory, oView^.aDirectory);
       End;
     End;
-    HandleJobQueue();
   End;
   // F6 = Move
   If key = VK_F6 Then Begin
@@ -1248,7 +1251,6 @@ Begin
         AddtoCreateAndAddJobQueue(aListview.Items[i], jsMove, aView^.aDirectory, oView^.aDirectory);
       End;
     End;
-    HandleJobQueue();
   End;
   // F8 = Delete
   If key = VK_F8 Then Begin
@@ -1259,7 +1261,6 @@ Begin
         AddtoCreateAndAddJobQueue(aListview.Items[i], jsDel, aView^.aDirectory, '');
       End;
     End;
-    HandleJobQueue();
   End;
   // User Search eingaben ;)
   If key = VK_ESCAPE Then Begin
@@ -1657,7 +1658,7 @@ Begin
   While Not fJobFifo.isempty Do Begin
     job := fJobFifo.Pop;
     // Gibt es diesen Job schon in unseren Listen ?
-    If fWorkThread.ExistJob(job) Then Begin
+    If assigned(fWorkThread) And fWorkThread.ExistJob(job) Then Begin
       If ID_NO = Application.MessageBox(pchar('Warning, Job:' + LineEnding + JobToString(job) + LineEnding + 'already exists in queue. Do you want to add the job anyway?')
         , 'Warning'
         , MB_YESNO Or MB_ICONQUESTION) Then Begin
@@ -1670,7 +1671,12 @@ Begin
     n.Data := job;
     form2.Invalidate;
     // Aufnehmen in die Arbeiter Klasse ;)
-    fWorkThread.AddJob(job);
+    If assigned(fWorkThread) Then Begin
+      fWorkThread.AddJob(job);
+    End
+    Else Begin
+      job.free;
+    End;
   End;
 End;
 
@@ -1726,7 +1732,12 @@ Begin
         End;
       End;
     jtDelFile, jtDelDir: Begin
-        s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Source));
+        If Job.JobType = jtDelDir Then Begin
+          s := IncludeTrailingPathDelimiter(ExtractFilePath(ExcludeTrailingPathDelimiter(job.Source)));
+        End
+        Else Begin
+          s := IncludeTrailingPathDelimiter(ExtractFilePath(job.Source));
+        End;
         decGetElementCounter(ExcludeTrailingPathDelimiter(s));
         If s = fLeftView.aDirectory Then LoadDir(s, fLeftView);
         If s = fRightView.aDirectory Then LoadDir(s, fRightView);

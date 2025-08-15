@@ -253,7 +253,6 @@ Begin
     j.JobType := jtDelEmptyFolders;
     form1.AddToJobQueue(j);
   End;
-  Form1.HandleJobQueue();
   ModalResult := mrOK;
 End;
 
