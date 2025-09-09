@@ -299,6 +299,7 @@ Type
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
     fLeftView, fRightView: TView; // Bäh wieder Private machen !
+    fShutdownbyRestRequest: Boolean;
     Procedure LoadDir(Dir: String; Var View: TView; ForceElementBufferRefresh: Boolean = false);
     Procedure AddToJobQueue(Const Job: TJob); //Fügt non LCL Blocking in die JobQueue ein
   End;
@@ -636,7 +637,7 @@ Begin
   startup := true;
   fJobFifo := TJobFifo.create;
   GetElementCountBuffer := Nil;
-
+  fShutdownbyRestRequest := false;
   CheckAndMaybeEnableRestAPI;
 End;
 
@@ -688,6 +689,9 @@ Begin
 End;
 
 Procedure TForm1.ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
+Const
+  CloseTimer: QWord = 0;
+  CloseTimeout = 250; // Das Verzögert das automatische beenden, in der Hoffnung, dass die ggf. noch Ausstehende Antwort auf jeden Fall raus geht.
 Var
   j: TJob;
 Begin
@@ -738,6 +742,17 @@ Begin
       End;
     End;
     HandleJobQueue();
+  End;
+  If fShutdownbyRestRequest Then Begin
+    // TODO: Prüfen ob gerade noch was gesendet wird (kann die LTPComponente dass ?)
+    If CloseTimer = 0 Then Begin
+      CloseTimer := GetTickCount64;
+    End
+    Else Begin
+      If GetTickCount64 > CloseTimer + CloseTimeout Then Begin
+        close;
+      End;
+    End;
   End;
   sleep(1);
 End;

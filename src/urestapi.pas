@@ -60,6 +60,7 @@ Type
      * Alle Post Methoden
      *)
     Function Setdir(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): TPostResult;
+    Function Shutdown(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): TPostResult;
     Function Job(Sender: TObject; Const aPath: String; Const aContent: TJSONObj): TPostResult;
   public
     Constructor Create; virtual;
@@ -118,6 +119,7 @@ Begin
   fServer.RegisterGetHandler('/api/status', @GetStatus);
   fServer.RegisterGetHandler('/api/view/list', @GetViewList);
   fServer.RegisterPostHandler('/api/job', @Job);
+  fServer.RegisterPostHandler('/api/shutdown', @Shutdown);
 
   If ZombieMode Then Begin
     fServer.RegisterPostHandler('/api/zombie/setdir', @Setdir);
@@ -243,6 +245,38 @@ Begin
       result.Content := TextNode('msg', av.Message);
     End;
   End;
+End;
+
+Function TRestAPIDummy.Shutdown(Sender: TObject; Const aPath: String;
+  Const aContent: TJSONObj): TPostResult;
+Var
+  jv: TJSONValue;
+  SkipJobs: Boolean;
+Begin
+  SkipJobs := false;
+  result.HTTPCode := 400;
+  result.Content := Nil;
+  If assigned(aContent) Then Begin
+    Try
+      jv := aContent.FindPath('skipJobs') As TJSONValue;
+      If assigned(jv) Then Begin
+        SkipJobs := lowercase(trim(jv.Value)) = 'true';
+      End;
+    Except
+      exit;
+    End;
+  End;
+  If (Not SkipJobs) And form1.fWorkThread.Busy Then Begin
+    result.HTTPCode := 403;
+    result.Content := TextNode('status', 'pending jobs, no permission to skip jobs.');
+    exit;
+  End
+  Else Begin
+    result.HTTPCode := 200;
+    result.Content := TextNode('status', 'ok');
+  End;
+  // Set Flag "Shutdown"
+  Form1.fShutdownbyRestRequest := true;
 End;
 
 Function TRestAPIDummy.Job(Sender: TObject; Const aPath: String;

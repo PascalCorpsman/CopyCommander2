@@ -17,6 +17,7 @@ Zombie paths are used to control the application (visible to the user), to enabl
 | --- | --- | --- | --- |
 | GET | [/API/status](#get-apistatus) | normal | get current state of application
 | GET | [/API/view/list](#get-apiviewlist) | normal | get list of content from a spezific view
+| POST | [/API/shutdown](#post-apishutdown) | normal | shutdown CopyCommander2
 | POST | [/API/zombie/setdir](#post-apizombiesetdir) | zombie | set directory path for left or right view
 
 ## GET /API/status
@@ -183,6 +184,36 @@ Creates a new job to copy, move, or delete files/folders.
 }
 ```
 
+## POST /API/shutdown
+
+Shuts down the CopyCommander2 application.
+
+### Request
+
+**Method:** POST  
+**Path:** `/API/shutdown`  
+**Content-Type:** `application/json`
+
+### Request Schema
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `skipJobs` | boolean | No | Whether to skip currently running jobs (default: false) |
+
+### Example Request
+
+```json
+{
+    "skipJobs": true
+}
+```
+
+### Response
+
+**HTTP Status Codes:**
+- `200 OK` - Application shutdown initiated successfully
+- `403 Forbidden` - Shutdown not allowed (jobs are running and skipJobs is false)
+  
 ## POST /API/zombie/setdir
 
 Sets the directory path for either the left or right view.
