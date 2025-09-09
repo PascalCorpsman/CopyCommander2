@@ -16,7 +16,7 @@ Zombie paths are used to control the application (visible to the user), to enabl
 | Method | Overview | Kind | Description
 | --- | --- | --- | --- |
 | GET | [/API/status](#get-apistatus) | normal | get current state of application
-| GET | [/API/view/list](#get-apiviewlist) | normal | get list of content from a spezific view
+| GET | [/API/view/list](#get-apiviewlist) | normal | get list of content from a specific view
 | POST | [/API/shutdown](#post-apishutdown) | normal | shutdown CopyCommander2
 | POST | [/API/zombie/setdir](#post-apizombiesetdir) | zombie | set directory path for left or right view
 
