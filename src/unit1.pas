@@ -105,6 +105,8 @@
 (*                      ADD: REST Server                                      *)
 (*                      FIX: did not refresh folder if subfolder was deleted  *)
 (*                      FIX: copying empty subfolders did not work            *)
+(*                      FIX: crash, when a file in folder is deleted while a  *)
+(*                           file is renamed that is "later" in that folder   *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -1117,12 +1119,18 @@ Begin
   End;
   // F2 = Rename
   If key = VK_F2 Then Begin
+{$IFDEF Linux}
+    // Löscht man den Key nicht, dann kommt bei einer "Händischen" Eingabe der Dialog doppelt, da scheint wohl was mit der Key weiterleitung im Argen zu sein.
+    key := 0;
+{$ENDIF}
     w := '';
-    For i := 0 To aListview.Items.Count - 1 Do Begin
+    i := 0;
+    While i < aListview.Items.Count Do Begin
       If aListview.Items[i].Selected Then Begin
         aListview.Items[i].Selected := false;
         If aListview.Items[i].Caption = '[..]' Then Continue;
         s := aListview.Items[i].caption;
+        u := s;
         If pos('(', aListview.Items[i].SubItems[SubItemIndexSize]) = 1 Then Begin
           // Hier wird ein Verzeichnis umbenannt -> Muss nichts weiter gemacht werden.
         End
@@ -1136,6 +1144,15 @@ Begin
            * Anscheinend gibt es kein RenameDirectory das geht auch so ..
            *)
           If RenameFileUTF8(aView^.aDirectory + s, aView^.aDirectory + t) Then Begin
+            // Wir müssen den Eintrag erneut suchen, da die Inputbox "Zeit" verbraucht in der sich die Listview z.B. durch einen Löschjob ändern kann
+            i := aListview.Items.Count;
+            For j := 0 To aListview.Items.Count - 1 Do Begin
+              If aListview.Items[j].caption = u Then Begin
+                i := j;
+                break;
+              End;
+            End;
+            If i = aListview.Items.Count Then exit; // Der Eintag konnte nicht mehr gefunden werden -> Abbruch
             If pos('(', aListview.Items[i].SubItems[SubItemIndexSize]) = 1 Then Begin
               // Hier wird ein Verzeichnis umbenannt
               aListview.Items[i].caption := t;
@@ -1151,6 +1168,7 @@ Begin
           End;
         End;
       End;
+      inc(i);
     End;
     // Es wurde etwas umbenannt ->  Die Verzeichnisse müssen neu geladen werden
     If w <> '' Then Begin
