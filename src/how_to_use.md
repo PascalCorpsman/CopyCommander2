@@ -6,6 +6,10 @@ This Programm is orientated on the "Total Commander" application for Windows.
 
 The main porpuse of this programm is copying and moveing files / directories, in a queue.
 
+### "open"
+
+If set in the settings, this can call a external programm with the actual selected file.
+
 ### "diff viewer" folder feature
 
 Navigate to two different folders that you want to be synchronized. Press CTRL + S to open the diff viewer folder dialog.

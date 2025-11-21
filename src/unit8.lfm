@@ -19,8 +19,12 @@ object Form8: TForm8
   object Edit1: TEdit
     Left = 64
     Height = 26
+    Hint = 'Multiple entries allowed, separate them with '';'''
     Top = 8
-    Width = 80
+    Width = 248
+    Anchors = [akTop, akLeft, akRight]
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 0
     Text = 'Edit1'
   end
@@ -50,9 +54,12 @@ object Form8: TForm8
   object Edit3: TEdit
     Left = 64
     Height = 26
+    Hint = '%f stands for the actual selected file / folder'
     Top = 70
     Width = 248
     Anchors = [akTop, akLeft, akRight]
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 2
     Text = 'Edit3'
   end
@@ -64,6 +71,7 @@ object Form8: TForm8
     Anchors = [akTop, akRight]
     Caption = 'Set'
     TabOrder = 3
+    OnClick = Button1Click
   end
   object Button2: TButton
     Left = 320
@@ -84,5 +92,9 @@ object Form8: TForm8
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 5
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 155
+    Top = 54
   end
 end

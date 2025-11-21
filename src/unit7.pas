@@ -35,6 +35,8 @@ Type
     GroupBox1: TGroupBox;
     StringGrid1: TStringGrid;
     Procedure Button3Click(Sender: TObject);
+    Procedure Button4Click(Sender: TObject);
+    Procedure Button5Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
   private
 
@@ -70,6 +72,7 @@ Begin
     StringGrid1.Cells[1, i + 1] := inifile.ReadString('FileAssociations', 'cmd' + inttostr(i), '');
     StringGrid1.Cells[2, i + 1] := inifile.ReadString('FileAssociations', 'Params' + inttostr(i), '');
   End;
+  StringGrid1.AutoSizeColumns;
 End;
 
 Procedure TForm7.SaveTo(Const Inifile: TIniFile);
@@ -105,7 +108,31 @@ Begin
     StringGrid1.Cells[0, index] := form8.Edit1.Text;
     StringGrid1.Cells[1, index] := form8.Edit2.Text;
     StringGrid1.Cells[2, index] := form8.Edit3.Text;
+    StringGrid1.AutoSizeColumns;
   End;
+End;
+
+Procedure TForm7.Button4Click(Sender: TObject);
+Begin
+  // Edit
+  If StringGrid1.Selection.Top > 0 Then Begin
+    form8.InitWith(StringGrid1.Cells[0, StringGrid1.Selection.Top],
+      StringGrid1.Cells[1, StringGrid1.Selection.Top],
+      StringGrid1.Cells[2, StringGrid1.Selection.Top]
+      );
+    If form8.ShowModal = mrOK Then Begin
+      StringGrid1.Cells[0, StringGrid1.Selection.Top] := form8.Edit1.Text;
+      StringGrid1.Cells[1, StringGrid1.Selection.Top] := form8.Edit2.Text;
+      StringGrid1.Cells[2, StringGrid1.Selection.Top] := form8.Edit3.Text;
+      StringGrid1.AutoSizeColumns;
+    End;
+  End;
+End;
+
+Procedure TForm7.Button5Click(Sender: TObject);
+Begin
+  If StringGrid1.Selection.Top > 0 Then
+    StringGrid1.DeleteRow(StringGrid1.Selection.Top);
 End;
 
 End.

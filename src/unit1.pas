@@ -324,7 +324,7 @@ Implementation
 {$R *.lfm}
 
 Uses LazFileUtils, LCLType, math, process, UTF8Process
-  , urestapi // Rest-API
+  , urestapi
   , unit2 // Progress Dialog
   , Unit3 // Diff Dialog
   , unit4 // Errorlog

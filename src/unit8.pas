@@ -35,6 +35,8 @@ Type
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    OpenDialog1: TOpenDialog;
+    Procedure Button1Click(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
   private
 
@@ -55,6 +57,11 @@ Implementation
 Procedure TForm8.FormCreate(Sender: TObject);
 Begin
   caption := 'File ext association editor';
+End;
+
+Procedure TForm8.Button1Click(Sender: TObject);
+Begin
+  If OpenDialog1.Execute Then edit2.text := OpenDialog1.FileName;
 End;
 
 Procedure TForm8.InitWith(ext, cmd, params: String);
