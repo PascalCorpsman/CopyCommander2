@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.16                                                         *)
+(* Version     : 0.17                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -32,7 +32,7 @@
 (*       Da die Byteanzahl beim Adden gespeichert und dann nicht mehr         *)
 (*       aktualisiert wird                                                    *)
 (*                                                                            *)
-(* History     : 0.01 - Initial version                                       *)
+(* History     :                                                              *)
 (*  (15.02.2022) 0.01 = Initialversion                                        *)
 (*  (17.02.2022) 0.02 = Auswerten Paramstr beim Start (besseres               *)
 (*                      Fehlerhandling)                                       *)
@@ -107,6 +107,7 @@
 (*                      FIX: copying empty subfolders did not work            *)
 (*                      FIX: crash, when a file in folder is deleted while a  *)
 (*                           file is renamed that is "later" in that folder   *)
+(*                      ADD: File associations                                *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -176,6 +177,10 @@ Type
     MenuItem24: TMenuItem;
     MenuItem25: TMenuItem;
     MenuItem26: TMenuItem;
+    MenuItem27: TMenuItem;
+    MenuItem28: TMenuItem;
+    MenuItem29: TMenuItem;
+    MenuItem30: TMenuItem;
     mnFileManagerR: TMenuItem;
     mnFilemanagerL: TMenuItem;
     mnMoveShortcut: TMenuItem;
@@ -216,6 +221,10 @@ Type
     btnDirLeft: TSpeedButton;
     btnDirRight: TSpeedButton;
     SelectDirectoryDialog1: TSelectDirectoryDialog;
+    Separator1: TMenuItem;
+    Separator2: TMenuItem;
+    Separator3: TMenuItem;
+    Separator4: TMenuItem;
     StatusBar1: TStatusBar;
     StatusBar2: TStatusBar;
     Procedure ApplicationProperties1Idle(Sender: TObject; Var Done: Boolean);
@@ -237,14 +246,12 @@ Type
     Procedure FormCreate(Sender: TObject);
     Procedure FormDropFiles(Sender: TObject; Const FileNames: Array Of String);
     Procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
-    Procedure ListView1DblClick(Sender: TObject);
     Procedure ListView1KeyDown(Sender: TObject; Var Key: Word;
       Shift: TShiftState);
     Procedure ListView1MouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     Procedure ListView1Resize(Sender: TObject);
     Procedure ListView2ColumnClick(Sender: TObject; Column: TListColumn);
-    Procedure ListView2DblClick(Sender: TObject);
     Procedure ListView2Resize(Sender: TObject);
     Procedure MenuItem12Click(Sender: TObject);
     Procedure MenuItem14Click(Sender: TObject);
@@ -254,6 +261,9 @@ Type
     Procedure MenuItem23Click(Sender: TObject);
     Procedure MenuItem24Click(Sender: TObject);
     Procedure MenuItem25Click(Sender: TObject);
+    Procedure MenuItem27Click(Sender: TObject);
+    Procedure MenuItem28Click(Sender: TObject);
+    Procedure MenuItem29Click(Sender: TObject);
     Procedure mnCreateShortcutRClick(Sender: TObject);
     Procedure MenuItem19Click(Sender: TObject);
     Procedure mnCreateShortcutLClick(Sender: TObject);
@@ -313,13 +323,15 @@ Implementation
 
 {$R *.lfm}
 
-Uses LazFileUtils, LCLType, math
+Uses LazFileUtils, LCLType, math, process, UTF8Process
   , urestapi // Rest-API
   , unit2 // Progress Dialog
   , Unit3 // Diff Dialog
   , unit4 // Errorlog
   , Unit5 // Abfrage Skip, Replace ...
   , Unit6 // Sync Folder Dialog
+  , Unit7 // Settings
+  // , unit8 // File ext association editor
   ;
 
 Const
@@ -1009,14 +1021,6 @@ Begin
   End;
 End;
 
-Procedure TForm1.ListView1DblClick(Sender: TObject);
-Var
-  Key: Word;
-Begin
-  Key := VK_RETURN;
-  ListView1KeyDown(ListView1, key, []);
-End;
-
 Procedure TForm1.ListView1KeyDown(Sender: TObject; Var Key: Word;
   Shift: TShiftState);
 Var
@@ -1024,6 +1028,7 @@ Var
   s, t, u, w: String;
   aListview, oListview: TListView;
   aView, oView: PView; // !! Achtung, hier muss mit den Pointern gearbeitet werden, sonst kann LoadDir die View nicht beschreiben !
+  p: TProcessUTF8;
 Begin
   (*
    * Liste aller Aufrufe bei denen Es Egal ist aus welcher Listbox heraus sie aufgerufen werden
@@ -1117,6 +1122,36 @@ Begin
     aListview.Items[0].Selected := true;
     key := VK_RETURN;
   End;
+  // F7 = Make dir
+  If key = VK_F7 Then Begin
+{$IFDEF Linux}
+    // Löscht man den Key nicht, dann kommt bei einer "Händischen" Eingabe der Dialog doppelt, da scheint wohl was mit der Key weiterleitung im Argen zu sein.
+    key := 0;
+{$ENDIF}
+    If aview^.aDirectory = '' Then exit;
+    s := InputBox('Action', 'Please enter folder name', 'New Folder');
+    If s <> '' Then Begin
+      If ForceDirectoriesUTF8(aView^.aDirectory + s) Then Begin
+        IncGetElementCounter(ExcludeTrailingPathDelimiter(aView^.aDirectory));
+        LoadDir(aView^.aDirectory, aView^);
+        ListViewSelectItem(aListview, s);
+        // Wenn Beide seiten das gleiche anzeigen, dann sollte die Andere Ansicht natürlich auch neu geladen werden ..
+        If oView^.aDirectory = aView^.aDirectory Then Begin
+          LoadDir(oView^.aDirectory, oView^);
+        End;
+      End
+      Else Begin
+        showmessage('Error, unable to create: ' + s);
+      End;
+    End;
+    exit;
+  End;
+  (*
+   * Für alles was jetzt kommt muss mindestens 1 Datensatz angewählt sein.
+   *)
+  If (aListview.SelCount = 0) Then Begin
+    exit;
+  End;
   // F2 = Rename
   If key = VK_F2 Then Begin
 {$IFDEF Linux}
@@ -1183,34 +1218,32 @@ Begin
     End;
     exit;
   End;
-  // F7 = Make dir
-  If key = VK_F7 Then Begin
-{$IFDEF Linux}
-    // Löscht man den Key nicht, dann kommt bei einer "Händischen" Eingabe der Dialog doppelt, da scheint wohl was mit der Key weiterleitung im Argen zu sein.
-    key := 0;
-{$ENDIF}
-    If aview^.aDirectory = '' Then exit;
-    s := InputBox('Action', 'Please enter folder name', 'New Folder');
-    If s <> '' Then Begin
-      If ForceDirectoriesUTF8(aView^.aDirectory + s) Then Begin
-        IncGetElementCounter(ExcludeTrailingPathDelimiter(aView^.aDirectory));
-        LoadDir(aView^.aDirectory, aView^);
-        ListViewSelectItem(aListview, s);
-        // Wenn Beide seiten das gleiche anzeigen, dann sollte die Andere Ansicht natürlich auch neu geladen werden ..
-        If oView^.aDirectory = aView^.aDirectory Then Begin
-          LoadDir(oView^.aDirectory, oView^);
-        End;
-      End
-      Else Begin
-        showmessage('Error, unable to create: ' + s);
+  // "open" file
+  If (ssShift In Shift) And (key = VK_RETURN) Then Begin
+    w := aView^.aDirectory + aListview.Selected.Caption;
+    u := '';
+    If aListview.Selected.SubItems[SubItemIndexEXT] <> '' Then Begin
+      w := w + '.' + aListview.Selected.SubItems[SubItemIndexEXT];
+      u := '.' + aListview.Selected.SubItems[SubItemIndexEXT] + ';';
+    End;
+    For i := 0 To fIniFile.ReadInteger('FileAssociations', 'Count', 0) - 1 Do Begin
+      // Suchen der Passenden Anwendung
+      t := finifile.ReadString('FileAssociations', 'ext' + inttostr(i), '') + ';';
+      If pos(u, t) <> 0 Then Begin
+        p := TProcessUTF8.Create(Nil);
+        p.Executable := finifile.ReadString('FileAssociations', 'cmd' + inttostr(i), '');
+        p.Parameters.AddDelimitedtext(
+          StringReplace(finiFile.ReadString('FileAssociations', 'Params' + inttostr(i), ''), '%f', w, [rfReplaceAll]),
+          ' ',
+          false // True, oder false das ist hier die Frage ?
+          );
+        p.Options := [poNoConsole];
+        p.Execute;
+        p.free;
+        exit;
       End;
     End;
-    exit;
-  End;
-  (*
-   * Für alles was jetzt kommt muss mindestens 1 Datensatz angewählt sein.
-   *)
-  If (aListview.SelCount = 0) Then Begin
+    showmessage('Error, found no association for: ' + w);
     exit;
   End;
   // Navigation mittels Return
@@ -1347,14 +1380,14 @@ Begin
   Else Begin
     ListView1KeyDown(ListView1, key, []);
   End;
-End;
-
-Procedure TForm1.ListView2DblClick(Sender: TObject);
-Var
-  Key: Word;
-Begin
-  Key := VK_RETURN;
-  ListView1KeyDown(ListView2, key, []);
+  If (ssShift In shift) And (ssDouble In Shift) Then Begin
+    key := VK_RETURN;
+    ListView1KeyDown(sender, key, [ssShift]);
+  End;
+  If (Not (ssShift In shift)) And (ssDouble In Shift) Then Begin
+    key := VK_RETURN;
+    ListView1KeyDown(sender, key, []);
+  End;
 End;
 
 Procedure TForm1.MenuItem12Click(Sender: TObject);
@@ -1427,6 +1460,33 @@ Begin
       Form2.BringToFront;
     End;
   End;
+End;
+
+Procedure TForm1.MenuItem27Click(Sender: TObject);
+Begin
+  // Settings
+  Form7.LoadFrom(finiFile);
+  If form7.Showmodal = mrOK Then Begin
+    Form7.SaveTo(finiFile);
+  End;
+End;
+
+Procedure TForm1.MenuItem28Click(Sender: TObject);
+Var
+  key: word;
+Begin
+  // Open Left
+  key := VK_RETURN;
+  ListView1KeyDown(ListView1, key, [ssshift]);
+End;
+
+Procedure TForm1.MenuItem29Click(Sender: TObject);
+Var
+  key: word;
+Begin
+  // Open Right
+  key := VK_RETURN;
+  ListView1KeyDown(ListView2, key, [ssshift]);
 End;
 
 Procedure TForm1.mnCreateShortcutLClick(Sender: TObject);
@@ -1858,7 +1918,6 @@ Begin
   Panel1Resize(Panel1);
   Panel2Resize(Panel2);
 End;
-
 
 {2022-02-20 Überarbeitete Version; Shortcut Buttons nur links oder rechts [h-elsner]}
 

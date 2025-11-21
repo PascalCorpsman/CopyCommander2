@@ -1,0 +1,98 @@
+object Form7: TForm7
+  Left = 323
+  Height = 564
+  Top = 107
+  Width = 782
+  Caption = 'Form7'
+  ClientHeight = 564
+  ClientWidth = 782
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  object Button1: TButton
+    Left = 608
+    Height = 25
+    Top = 528
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    ModalResult = 1
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 696
+    Height = 25
+    Top = 528
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 1
+  end
+  object GroupBox1: TGroupBox
+    Left = 8
+    Height = 201
+    Top = 8
+    Width = 763
+    Caption = ' File ext association '
+    ClientHeight = 184
+    ClientWidth = 761
+    TabOrder = 2
+    object StringGrid1: TStringGrid
+      Left = 8
+      Height = 168
+      Top = 8
+      Width = 624
+      AutoFillColumns = True
+      ColCount = 3
+      Columns = <      
+        item
+          SizePriority = 0
+          Title.Caption = 'Ext'
+          Width = 70
+        end      
+        item
+          SizePriority = 0
+          Title.Caption = 'CMD'
+          Width = 150
+        end      
+        item
+          Title.Caption = 'Params'
+          Width = 402
+        end>
+      FixedCols = 0
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
+      TabOrder = 0
+      ColWidths = (
+        70
+        150
+        402
+      )
+    end
+    object Button3: TButton
+      Left = 640
+      Height = 25
+      Top = 8
+      Width = 75
+      Caption = 'Add'
+      TabOrder = 1
+      OnClick = Button3Click
+    end
+    object Button4: TButton
+      Left = 640
+      Height = 25
+      Top = 40
+      Width = 75
+      Caption = 'Edit'
+      TabOrder = 2
+    end
+    object Button5: TButton
+      Left = 640
+      Height = 25
+      Top = 151
+      Width = 75
+      Caption = 'Del'
+      TabOrder = 3
+    end
+  end
+end

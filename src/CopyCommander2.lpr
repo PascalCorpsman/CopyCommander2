@@ -24,7 +24,7 @@ Uses
   athreads,
 {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, lnetvisual, Unit1, Unit2, Unit3, Unit4, Unit5, Unit6
+  Forms, lnetvisual, Unit1, Unit2, Unit3, Unit4, Unit5, Unit6, Unit7, Unit8
   { you can add units after this };
 
 {$R *.res}
@@ -39,6 +39,8 @@ Begin
   Application.CreateForm(TForm4, Form4);
   Application.CreateForm(TForm5, Form5);
   Application.CreateForm(TForm6, Form6);
+  Application.CreateForm(TForm7, Form7);
+  Application.CreateForm(TForm8, Form8);
   Application.Run;
 End.
 
