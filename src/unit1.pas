@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.17                                                         *)
+(* Version     : 0.16                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -108,6 +108,8 @@
 (*                      FIX: crash, when a file in folder is deleted while a  *)
 (*                           file is renamed that is "later" in that folder   *)
 (*                      ADD: File associations                                *)
+(*                      FIX: Gui Glitch form1.caption was poluted with debug  *)
+(*                           infos                                            *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -1354,7 +1356,6 @@ Begin
     If aView^.SearchEdit.Visible Then Begin
       For i := 0 To aListview.Items.Count - 1 Do Begin
         If pos(aView^.SearchEdit.text, lowercase(aListview.Items[i].Caption)) <> 0 Then Begin
-          caption := aListview.Items[i].Caption;
           ListViewSelectItemIndex(aView^.ListView, i);
           break;
         End;
