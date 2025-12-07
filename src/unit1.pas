@@ -132,6 +132,9 @@ Uses
   PairSplitter, ComCtrls, Menus, IniFiles, ucopycommander, Types, lclintf,
   Buttons, lNetComponents;
 
+Const
+  Version = '0.16';
+
 Type
 
   TJobSubType = (jsCopy, jsMove, jsDel);
@@ -619,7 +622,7 @@ Begin
   (*
    * Historie : Siehe ganz oben
    *)
-  Caption := 'Copycommander2 ver. 0.16';
+  Caption := 'Copycommander2 ver. ' + version;
   (*
    * Mindest Anforderungen:
    *  - Alle "Todo's" erledigt
