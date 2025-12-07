@@ -1,7 +1,7 @@
 (******************************************************************************)
 (* CopyCommander2                                                  15.02.2022 *)
 (*                                                                            *)
-(* Version     : 0.16                                                         *)
+(* Version     : 0.17                                                         *)
 (*                                                                            *)
 (* Author      : Uwe Schächterle (Corpsman)                                   *)
 (*                                                                            *)
@@ -96,7 +96,7 @@
 (*                      FIX: Filesize info was "incorrect"                    *)
 (*                      ADD: detect double jobs during editing                *)
 (*                      FIX: tab did not work to switch sides                 *)
-(*               0.16 = ADD: more detailed sync export                        *)
+(*  (07.12.2025) 0.16 = ADD: more detailed sync export                        *)
 (*                      ADD: searchstring by typing                           *)
 (*                      ADD: FolderCount Buffering, to speedup navigation     *)
 (*                      ADD: improove keyboard usability                      *)
@@ -110,6 +110,7 @@
 (*                      ADD: File associations                                *)
 (*                      FIX: Gui Glitch form1.caption was poluted with debug  *)
 (*                           infos                                            *)
+(*               0.17 =                                                       *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -133,7 +134,7 @@ Uses
   Buttons, lNetComponents;
 
 Const
-  Version = '0.16';
+  Version = '0.17';
 
 Type
 
