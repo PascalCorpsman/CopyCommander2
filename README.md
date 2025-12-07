@@ -12,7 +12,8 @@ Inside Lazarus you need to install the following packages:
 - L-Net from [almindor](https://github.com/almindor/lnet) or [PascalCorpsman](https://github.com/PascalCorpsman/lnet) use the online Packagemanager to install (recomended to use the PascalCorpsman version)
 
 
-## Direct download link (not always the newest version)
+## Direct download link
 
-If you do not have Lazarus you can directly download a precompiled binary [from](https://www.corpsman.de/klickcounter.php?url=download/copycommander.zip).
+If you do not have Lazarus you can directly download the latest release from [here](https://github.com/PascalCorpsman/CopyCommander2/releases/latest).
 
+> Linux users may to chmod +x the executable.
