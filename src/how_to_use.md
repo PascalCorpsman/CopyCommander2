@@ -4,7 +4,7 @@
 
 This Programm is orientated on the "Total Commander" application for Windows.
 
-The main porpuse of this programm is copying and moveing files / directories, in a queue.
+The main porpuse of this programm is copying and moveing files / directories, in a queue and beeing usable without the need of a mouse (at least all the usual operations).
 
 ### "open"
 
