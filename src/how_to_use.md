@@ -30,22 +30,28 @@ When you want to sync a "source" folder to a "target" folder (e.g. update a back
 
 except "delete empty folders" all "work" that will be done is exportable as .csv (see backround)
 
+### Keyboard commands
 
-### Main Screen
-
-Select some files, or folders with the mouse or keyboard and press
-
-F5 to copy the selected ones to the destination on the other side
-
-F6 to move the selected ones to the destination on the other side
-
-additional you can press
-
-F7 to prompt the create subfolder dialog
-
-F8 to delete a file or directoy
-
-CTRL + R to reload the actual folder view
+| Key | Description
+| --- |  --- 
+| TAB | Select other view
+| Insert | Select file and move to next (only works on Windows, Linux users use SHIFT + Arrow down)
+| BACK | Move one folder up
+| F2 | Rename selected file
+| F5 | Add file's to copy queue
+| F6 | Add file's to move queue
+| F7 | Create new subfolder 
+| F8 | delete file's
+| Return | Navigate into subfolder
+| ESC | Skip actual user searching
+| 'A' .. 'Z', '0'..'9' | Start user searching
+| CTRL + A | Select all files in view
+| CTRL + H | Toggle show / hide hidden files
+| CTRL + L | Open Sync viewer
+| CTRL + R | Reload view
+| CTRL + S | Open Diff viewer
+| CTRL + TAB | Swap left / right view
+| SHIFT + Return | Open Selected file (if a file association is defined)
 
 Drag and Drop exact one file from outside the programm into one of the listviews, will change the 
 folderview to the desination of this file.

@@ -110,7 +110,7 @@
 (*                      ADD: File associations                                *)
 (*                      FIX: Gui Glitch form1.caption was poluted with debug  *)
 (*                           infos                                            *)
-(*               0.17 =                                                       *)
+(*               0.17 = ADD: settings for "show hidden files"                 *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -1035,6 +1035,7 @@ Var
   aListview, oListview: TListView;
   aView, oView: PView; // !! Achtung, hier muss mit den Pointern gearbeitet werden, sonst kann LoadDir die View nicht beschreiben !
   p: TProcessUTF8;
+  ShowHidden: Boolean;
 Begin
   (*
    * Liste aller Aufrufe bei denen Es Egal ist aus welcher Listbox heraus sie aufgerufen werden
@@ -1055,6 +1056,15 @@ Begin
     LoadDir(fRightView.aDirectory, fLeftView);
     // Rechts mit Links neu Laden
     LoadDir(s, fRightView);
+    exit;
+  End;
+  // Toggle Show Hidden Files
+  If (ssCtrl In Shift) And (key = VK_H) Then Begin
+    ShowHidden := fInifile.ReadBool('General', 'Show_Hidden', false);
+    fInifile.WriteBool('General', 'Show_Hidden', Not ShowHidden);
+    // Reload both folders
+    MenuItem5Click(Nil); // Reload Left
+    MenuItem7Click(Nil); // Reload Right
     exit;
   End;
   (*
@@ -2126,7 +2136,9 @@ Var
 {$IFDEF Windows}
   sl: TStringList;
 {$ENDIF}
+  ShowHidden: Boolean;
 Begin
+  ShowHidden := fInifile.ReadBool('General', 'Show_Hidden', false);
   DirectoryCount := 0;
   FileCount := 0;
   sa := Nil;
@@ -2172,13 +2184,15 @@ Begin
     If FindFirstutf8(dir + '*', faAnyFile, SR) = 0 Then Begin
       Repeat
         If (SR.Attr And FaDirectory = FaDirectory) Then Begin
-          If (sr.Name <> '.') And (sr.Name <> '..') Then Begin
-            item := view.listview.Items.Add;
-            item.Caption := sr.Name;
-            item.ImageIndex := ImageIndexFolder;
-            item.SubItems.add('<DIR>');
-            item.SubItems.add(format('(%d)', [GetElementcount(dir + sr.Name)]));
-            inc(DirectoryCount);
+          If (sr.Name <> '.') And (sr.Name <> '..') And (sr.Name <> '') Then Begin
+            If (sr.Name[1] <> '.') Or (ShowHidden) Then Begin
+              item := view.listview.Items.Add;
+              item.Caption := sr.Name;
+              item.ImageIndex := ImageIndexFolder;
+              item.SubItems.add('<DIR>');
+              item.SubItems.add(format('(%d)', [GetElementcount(dir + sr.Name)]));
+              inc(DirectoryCount);
+            End;
           End;
         End
       Until FindNextutf8(SR) <> 0;
@@ -2188,29 +2202,31 @@ Begin
     If FindFirstutf8(dir + '*', faAnyFile, SR) = 0 Then Begin
       Repeat
         If (SR.Attr And FaDirectory = 0) Then Begin
-          If (sr.Name <> '.') And (sr.Name <> '..') Then Begin
-            (*
-            ACHTUNG dieser Code mus kompatibel zu
+          If (sr.Name <> '.') And (sr.Name <> '..') And (sr.Name <> '') Then Begin
+            If (sr.Name[1] <> '.') Or (ShowHidden) Then Begin
+              (*
+              ACHTUNG dieser Code mus kompatibel zu
 
-            TRestAPIDummy.GetViewList
+              TRestAPIDummy.GetViewList
 
-            gehalten werden !!
-            *)
-            inc(FileCount);
-            item := view.listview.Items.Add;
-            If pos('.', sr.name) = 1 Then Begin
-              item.Caption := sr.Name;
-              item.SubItems.add('');
-            End
-            Else Begin
-              item.Caption := ExtractFileNameOnly(sr.Name);
-              s := ExtractFileExt(sr.name);
-              s := copy(s, 2, length(s));
-              item.SubItems.add(s);
+              gehalten werden !!
+              *)
+              inc(FileCount);
+              item := view.listview.Items.Add;
+              If pos('.', sr.name) = 1 Then Begin
+                item.Caption := sr.Name;
+                item.SubItems.add('');
+              End
+              Else Begin
+                item.Caption := ExtractFileNameOnly(sr.Name);
+                s := ExtractFileExt(sr.name);
+                s := copy(s, 2, length(s));
+                item.SubItems.add(s);
+              End;
+              item.ImageIndex := FileTypeToIndex(s);
+              item.SubItems.add(FileSizeToString(sr.Size));
+              TotalFileSize := TotalFileSize + sr.Size;
             End;
-            item.ImageIndex := FileTypeToIndex(s);
-            item.SubItems.add(FileSizeToString(sr.Size));
-            TotalFileSize := TotalFileSize + sr.Size;
           End;
         End
       Until FindNextutf8(SR) <> 0;

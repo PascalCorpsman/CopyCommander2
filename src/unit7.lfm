@@ -97,4 +97,12 @@ object Form7: TForm7
       OnClick = Button5Click
     end
   end
+  object CheckBox1: TCheckBox
+    Left = 8
+    Height = 22
+    Top = 216
+    Width = 182
+    Caption = 'Show hidden files / folders'
+    TabOrder = 3
+  end
 end

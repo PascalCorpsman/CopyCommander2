@@ -32,6 +32,7 @@ Type
     Button3: TButton;
     Button4: TButton;
     Button5: TButton;
+    CheckBox1: TCheckBox;
     GroupBox1: TGroupBox;
     StringGrid1: TStringGrid;
     Procedure Button3Click(Sender: TObject);
@@ -73,6 +74,7 @@ Begin
     StringGrid1.Cells[2, i + 1] := inifile.ReadString('FileAssociations', 'Params' + inttostr(i), '');
   End;
   StringGrid1.AutoSizeColumns;
+  CheckBox1.Checked := Inifile.ReadBool('General', 'Show_Hidden', false);
 End;
 
 Procedure TForm7.SaveTo(Const Inifile: TIniFile);
@@ -85,6 +87,7 @@ Begin
     inifile.WriteString('FileAssociations', 'cmd' + inttostr(i - 1), StringGrid1.Cells[1, i]);
     inifile.WriteString('FileAssociations', 'Params' + inttostr(i - 1), StringGrid1.Cells[2, i]);
   End;
+  Inifile.WriteBool('General', 'Show_Hidden', CheckBox1.Checked);
 End;
 
 Procedure TForm7.Button3Click(Sender: TObject);
