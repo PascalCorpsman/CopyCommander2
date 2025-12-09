@@ -111,6 +111,7 @@
 (*                      FIX: Gui Glitch form1.caption was poluted with debug  *)
 (*                           infos                                            *)
 (*               0.17 = ADD: settings for "show hidden files"                 *)
+(*                      ADD: Feature, shutdown when finished                  *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -314,6 +315,7 @@ Type
     Procedure IncGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
     Procedure DecGetElementCounter(Const aFolder: String); // aFolder ohne Pathdelim am ende !
     Procedure HandleJobQueue(); // Übernimmt alle Jobs die via AddToJobQueue eingetragen wurden ;)
+    Procedure ShutDownOS;
   public
     fWorkThread: TWorkThread; // Bäh wieder Private machen !
     fLeftView, fRightView: TView; // Bäh wieder Private machen !
@@ -338,6 +340,7 @@ Uses LazFileUtils, LCLType, math, process, UTF8Process
   , Unit6 // Sync Folder Dialog
   , Unit7 // Settings
   // , unit8 // File ext association editor
+  , Unit9 // Shutdown counter
   ;
 
 Const
@@ -1789,6 +1792,43 @@ Begin
   End;
 End;
 
+Procedure TForm1.ShutDownOS;
+Var
+  p: TProcess;
+Begin
+  form9.Start;
+  form9.ModalResult := mrNone;
+  // Dem Benutzer 15s Zeit geben, das ganze ab zu brechen..
+  If form9.ShowModal = mrOK Then Begin
+    p := TProcess.Create(Nil);
+    p.Options := [poStderrToOutPut, poWaitOnExit];
+{$IFDEF Windows}
+    p.Executable := 'C:\Windows\System32\shutdown.exe';
+    p.add('/s');
+    p.add('/f');
+{$ELSE}
+    If FileExists('/usr/bin/dbus-send') Then Begin
+      writeLn('Shutting down Linux...');
+      //    p.CommandLine := 'dbus-send --system --print-reply --dest=org.freedesktop.ConsoleKit /org/freedesktop/ConsoleKit/Manager org.freedesktop.ConsoleKit.Manager.Stop';
+      p.Executable := 'dbus-send';
+      p.Parameters.Add('--system');
+      p.Parameters.Add('--print-reply');
+      p.Parameters.Add('--dest=org.freedesktop.ConsoleKit');
+      p.Parameters.Add('/org/freedesktop/ConsoleKit/Manager');
+      p.Parameters.Add('org.freedesktop.ConsoleKit.Manager.Stop');
+    End
+    Else Begin
+      writeLn('DBus command line utility not found!');
+      p.free;
+      Exit;
+    End;
+{$ENDIF}
+    p.Execute;
+    p.Free;
+    halt(0);
+  End;
+End;
+
 Procedure TForm1.OnByteTransfereStatistic(Sender: TObject;
   Statistic: TTransfereStatistic);
 Begin
@@ -1868,8 +1908,14 @@ Begin
   // Alles Ab gearbeitet -> Fortschrittsfenster wieder schließen ?
   form2.Label2.Caption := '-';
   form2.ProgressBar1.Position := 0;
-  If (form2.TreeView1.Items.Count = 0) And (Not Form2.CheckBox1.Checked) Then Begin
-    form2.Hide;
+  If (form2.TreeView1.Items.Count = 0) Then Begin
+    If (Not Form2.CheckBox1.Checked) Then Begin
+      form2.Hide;
+    End;
+    If form2.CheckBox2.Checked Then Begin
+      // TODO:
+      ShutdownOS;
+    End;
   End;
 End;
 

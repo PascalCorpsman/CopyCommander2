@@ -34,6 +34,7 @@ Type
     Chart1LineSeries1: TLineSeries;
     Chart1LineSeries2: TLineSeries;
     CheckBox1: TCheckBox;
+    CheckBox2: TCheckBox;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;

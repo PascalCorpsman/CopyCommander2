@@ -37,7 +37,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="18">
+    <Units Count="19">
       <Unit0>
         <Filename Value="CopyCommander2.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -143,6 +143,13 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit8"/>
       </Unit17>
+      <Unit18>
+        <Filename Value="unit9.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Form9"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="Unit9"/>
+      </Unit18>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

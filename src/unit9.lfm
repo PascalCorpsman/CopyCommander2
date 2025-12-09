@@ -1,0 +1,35 @@
+object Form9: TForm9
+  Left = 339
+  Height = 156
+  Top = 118
+  Width = 320
+  BorderStyle = bsDialog
+  Caption = 'Form9'
+  ClientHeight = 156
+  ClientWidth = 320
+  Position = poScreenCenter
+  LCLVersion = '4.99.0.0'
+  OnCreate = FormCreate
+  object Button1: TButton
+    Left = 16
+    Height = 25
+    Top = 120
+    Width = 288
+    Caption = 'Abort'
+    TabOrder = 0
+    OnClick = Button1Click
+  end
+  object ProgressBar1: TProgressBar
+    Left = 8
+    Height = 104
+    Top = 8
+    Width = 304
+    TabOrder = 1
+  end
+  object Timer1: TTimer
+    Enabled = False
+    OnTimer = Timer1Timer
+    Left = 24
+    Top = 24
+  end
+end
