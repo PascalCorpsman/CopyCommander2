@@ -153,6 +153,7 @@ object Form6: TForm6
     Hint = 'Type in any "string" that is not to be allowed as part of the filepath or filename,'#10'separated by ";"'#10#10'! Attention ! '#10'Comparing is case sensitive.'
     Top = 128
     Width = 728
+    Anchors = [akTop, akLeft, akRight]
     ParentShowHint = False
     ShowHint = True
     TabOrder = 10
