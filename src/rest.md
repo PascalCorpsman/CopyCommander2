@@ -17,7 +17,7 @@ Zombie paths are used to control the application (visible to the user), to enabl
 | --- | --- | --- | --- |
 | GET | [/API/status](#get-apistatus) | normal | get current state of application
 | GET | [/API/view/list](#get-apiviewlist) | normal | get list of content from a specific view
-| POST | [/API/jobs](#post-apijobs) | normal | start a job 
+| POST | [/API/job](#post-apijob) | normal | start a job 
 | POST | [/API/shutdown](#post-apishutdown) | normal | shutdown CopyCommander2
 | POST | [/API/zombie/setdir](#post-apizombiesetdir) | zombie | set directory path for left or right view
 
@@ -115,14 +115,14 @@ GET /API/view/list?view=right
 }
 ```
 
-## POST /API/jobs
+## POST /API/job
 
 Creates a new job to copy, move, or delete files/folders.
 
 ### Request
 
 **Method:** POST  
-**Path:** `/API/jobs`  
+**Path:** `/API/job`  
 **Content-Type:** `application/json`
 
 ### Request Schema

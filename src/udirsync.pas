@@ -23,18 +23,29 @@ Uses
 
 Type
 
-  TRenameEntry = Record
-    SourceFile: String;
-    DestFile: String;
-    FileSize: Int64;
-  End;
+  {-- Begin of content udirsync.inc
+    (*
+     * By this method you can "freely" adjust TRenameEntry and TFileEntry
+     * as Advanced Records do not allow adding fields to them
+     * The below code will only fill the one's shown in the template
+     * but zero's them out during initialization.
+     *)
+
+    TRenameEntry = Record
+      SourceFile: String;
+      FileSize: Int64;
+      DestFile: String;
+    End;
+
+    TFileEntry = Record
+      FileName: String;
+      FileSize: Int64;
+    End;
+  -- End of content}
+
+{$I udirsync.inc}
 
   TRenameList = Array Of TRenameEntry;
-
-  TFileEntry = Record
-    FileName: String;
-    FileSize: Int64;
-  End;
 
   TFileList = Array Of TFileEntry;
 
@@ -66,8 +77,11 @@ Procedure SortFileList(Var aList: TFileList);
  *  => Dazu Vergleich Copy Liste mit Delliste.
  *     Dateien die Kopiert werden sollen, aber "gleich" (Größe / md5) sind mit Dateien in der Delliste
  *     werden aus beiden listen entfernt und stattdessen umbenannt.
+ *
+ * !! Achtung !!
+ *  SourceFiles und DestFiles müssen Sortiert sein (am besten SortFileList dazunutzen)
  *)
-Procedure GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles, DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList, DelList: TFileList; MD5Comparing: Boolean);
+Function GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles, DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList, DelList: TFileList; MD5Comparing: Boolean): String;
 
 (*
  * Summiert alle aList.SourceFileSize
@@ -86,7 +100,7 @@ Procedure CreateReportFile(FileName, SourceDir, TargetDir: String; Const RenameL
 
 Implementation
 
-Uses LazFileUtils, md5, Dialogs;
+Uses LazFileUtils, md5, Dialogs, math;
 
 Const
   BufferBlockSize = 1024;
@@ -111,6 +125,8 @@ Var
     If BufferCnt >= Length(buffer) Then Begin
       setlength(buffer, length(buffer) + BufferBlockSize);
     End;
+    // Clear all Fields of Buffer (even the unknown ;) )
+    fillchar(buffer[BufferCnt], sizeof(buffer[BufferCnt]), 0);
     buffer[BufferCnt].FileName := FileName;
     delete(buffer[BufferCnt].FileName, 1, CropLen);
     buffer[BufferCnt].FileSize := aFile.Size;
@@ -142,7 +158,7 @@ Var
     End;
   End;
 Begin
-  setlength(Buffer, BufferBlockSize);
+  setlength(Buffer, max(BufferBlockSize, length(buffer)));
   BufferCnt := 0;
   CropLen := length(IncludeTrailingPathDelimiter(aDir));
   Scan(aDir);
@@ -181,9 +197,9 @@ Begin
   Quick(0, high(aList));
 End;
 
-Procedure GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles,
+Function GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles,
   DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList,
-  DelList: TFileList; MD5Comparing: Boolean);
+  DelList: TFileList; MD5Comparing: Boolean): String;
 
 Var
   RenameListCnt, CopyListCnt, DelListCnt: integer;
@@ -193,8 +209,7 @@ Var
     If CopyListCnt >= Length(CopyList) Then Begin
       setlength(CopyList, length(CopyList) + BufferBlockSize);
     End;
-    CopyList[CopyListCnt].FileName := SourceFiles[SourceFilesIndex].FileName;
-    CopyList[CopyListCnt].FileSize := SourceFiles[SourceFilesIndex].FileSize;
+    CopyList[CopyListCnt] := SourceFiles[SourceFilesIndex];
     inc(CopyListCnt);
   End;
 
@@ -204,8 +219,12 @@ Var
       setlength(RenameList, length(RenameList) + BufferBlockSize);
     End;
     RenameList[RenameListCnt].SourceFile := DelList[DelListIndex].FileName;
-    RenameList[RenameListCnt].DestFile := CopyList[CopyListIndex].FileName;
     RenameList[RenameListCnt].FileSize := CopyList[CopyListIndex].FileSize;
+    RenameList[RenameListCnt].DestFile := CopyList[CopyListIndex].FileName;
+{$IFDEF RootField}
+    RenameList[RenameListCnt].SourceRoot := DelList[CopyListIndex].Root;
+    RenameList[RenameListCnt].DestRoot := CopyList[CopyListIndex].Root;
+{$ENDIF}
     inc(RenameListCnt);
   End;
 
@@ -214,8 +233,7 @@ Var
     If DelListCnt >= Length(DelList) Then Begin
       setlength(DelList, length(DelList) + BufferBlockSize);
     End;
-    DelList[DelListCnt].FileName := DestFiles[DestFilesIndex].FileName;
-    DelList[DelListCnt].FileSize := DestFiles[DestFilesIndex].FileSize;
+    DelList[DelListCnt] := DestFiles[DestFilesIndex];
     inc(DelListCnt);
   End;
 
@@ -223,6 +241,7 @@ Var
   s, d, i, j, k: Integer;
   CopyHash, DelHash, tmp: String;
 Begin
+  result := '';
   SourceDir := IncludeTrailingPathDelimiter(SourceDir);
   TargetDir := IncludeTrailingPathDelimiter(TargetDir);
   setlength(RenameList, BufferBlockSize);
@@ -281,7 +300,7 @@ Begin
       End;
     End;
     If tmp <> '' Then Begin
-      showmessage('Warning, file rename heuristic will fail on the following files (this could be avoided, if md5 comparing is enabled): ' + tmp);
+      result := tmp;
     End;
   End;
   // 2. Versuch die Listen zu "optimieren"

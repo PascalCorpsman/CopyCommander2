@@ -121,6 +121,7 @@ Var
   End;
 Var
   Excludes: TStringArray;
+  Warning: String;
 Begin
   If Not DirectoryExistsutf8(label3.Caption) Then Begin
     ShowMessage('Error: "' + label3.Caption + '" is not a valid source directory.');
@@ -159,7 +160,10 @@ Begin
   RenameList := Nil;
   CopyList := Nil;
   DelList := Nil;
-  GenerateJobLists(label3.Caption, label4.Caption, SourceFiles, DestFiles, RenameList, CopyList, DelList, CheckBox2.Checked);
+  Warning := GenerateJobLists(label3.Caption, label4.Caption, SourceFiles, DestFiles, RenameList, CopyList, DelList, CheckBox2.Checked);
+  If warning <> '' Then Begin
+    showmessage('Warning, file rename heuristic will fail on the following files (this could be avoided, if md5 comparing is enabled): ' + Warning);
+  End;
   AppendTimeDelta('finished generating jobs');
   info.CopyInfo := FileSizeToString(FileListToSize(CopyList));
   info.DelInfo := FileSizeToString(FileListToSize(DelList));
