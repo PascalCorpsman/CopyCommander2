@@ -125,8 +125,6 @@ Var
     If BufferCnt >= Length(buffer) Then Begin
       setlength(buffer, length(buffer) + BufferBlockSize);
     End;
-    // Clear all Fields of Buffer (even the unknown ;) )
-    fillchar(buffer[BufferCnt], sizeof(buffer[BufferCnt]), 0);
     buffer[BufferCnt].FileName := FileName;
     delete(buffer[BufferCnt].FileName, 1, CropLen);
     buffer[BufferCnt].FileSize := aFile.Size;
@@ -157,6 +155,7 @@ Var
       FindCloseUTF8(Info);
     End;
   End;
+
 Begin
   setlength(Buffer, max(BufferBlockSize, length(buffer)));
   BufferCnt := 0;
@@ -222,7 +221,7 @@ Var
     RenameList[RenameListCnt].FileSize := CopyList[CopyListIndex].FileSize;
     RenameList[RenameListCnt].DestFile := CopyList[CopyListIndex].FileName;
 {$IFDEF RootField}
-    RenameList[RenameListCnt].SourceRoot := DelList[CopyListIndex].Root;
+    RenameList[RenameListCnt].SourceRoot := DelList[DelListIndex].Root;
     RenameList[RenameListCnt].DestRoot := CopyList[CopyListIndex].Root;
 {$ENDIF}
     inc(RenameListCnt);
