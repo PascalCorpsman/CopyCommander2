@@ -112,6 +112,7 @@
 (*                           infos                                            *)
 (*               0.17 = ADD: settings for "show hidden files"                 *)
 (*                      ADD: Feature, shutdown when finished                  *)
+(*                      ADD: switch from iB calculation to B calculation      *)
 (*                                                                            *)
 (******************************************************************************)
 (*  Silk icon set 1.3 used                                                    *)
@@ -479,7 +480,7 @@ Procedure SortListviewFromTo(Const Listview: TListview; aFrom, aTo: Integer; adi
       If Length(aSizeString) <> 2 Then exit;
       scale := 1;
       While aSizeString[1] In ['K', 'M', 'G', 'T', 'P'] Do Begin
-        scale := scale * 1024;
+        scale := scale * 1000;
         Case aSizeString[1] Of
           'K': aSizeString[1] := ' ';
           'M': aSizeString[1] := 'K';
