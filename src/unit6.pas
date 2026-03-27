@@ -160,7 +160,7 @@ Begin
   RenameList := Nil;
   CopyList := Nil;
   DelList := Nil;
-  Warning := GenerateJobLists(label3.Caption, label4.Caption, SourceFiles, DestFiles, RenameList, CopyList, DelList, CheckBox2.Checked);
+  Warning := GenerateJobLists(label3.Caption, label4.Caption, SourceFiles, DestFiles, RenameList, CopyList, DelList, CheckBox2.Checked, false);
   If warning <> '' Then Begin
     showmessage('Warning, file rename heuristic will fail on the following files (this could be avoided, if md5 comparing is enabled): ' + Warning);
   End;

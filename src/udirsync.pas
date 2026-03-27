@@ -81,7 +81,7 @@ Procedure SortFileList(Var aList: TFileList);
  * !! Achtung !!
  *  SourceFiles und DestFiles müssen Sortiert sein (am besten SortFileList dazunutzen)
  *)
-Function GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles, DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList, DelList: TFileList; MD5Comparing: Boolean): String;
+Function GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles, DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList, DelList: TFileList; MD5Comparing, ReplaceCopyByMove: Boolean): String;
 
 (*
  * Summiert alle aList.SourceFileSize
@@ -198,7 +198,7 @@ End;
 
 Function GenerateJobLists(SourceDir, TargetDir: String; Const SourceFiles,
   DestFiles: TFileList; Var RenameList: TRenameList; Var CopyList,
-  DelList: TFileList; MD5Comparing: Boolean): String;
+  DelList: TFileList; MD5Comparing, ReplaceCopyByMove: Boolean): String;
 
 Var
   RenameListCnt, CopyListCnt, DelListCnt: integer;
@@ -260,8 +260,19 @@ Begin
         inc(d);
       End
       Else Begin
-        // Unterschiedlich -> In die CopyList
-        AddToCopyList(s);
+        If ReplaceCopyByMove Then Begin
+          // Die Datei hat ihre Größe Geändert -> Wir faken ein Rename der existierenden auf die neue
+          // So wird die Datenbank aktualisiert ohne dass gelöscht /geadded werden muss..
+          AddToDelList(s);
+          AddToCopyList(d);
+          AddToMoveList(DelListCnt - 1, CopyListCnt - 1);
+          dec(DelListCnt);
+          dec(CopyListCnt);
+        End
+        Else Begin
+          // Unterschiedlich -> In die CopyList
+          AddToCopyList(s);
+        End;
         inc(s);
         inc(d);
       End;
@@ -364,7 +375,7 @@ Begin
   End;
 End;
 
-Function FileSizeToString(Value: Int64): String;
+Function FileSizeToString(Value: int64): String;
 Var
   s: char;
   r: Int64;
