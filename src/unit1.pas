@@ -1805,8 +1805,8 @@ Begin
     p.Options := [poStderrToOutPut, poWaitOnExit];
 {$IFDEF Windows}
     p.Executable := 'C:\Windows\System32\shutdown.exe';
-    p.add('/s');
-    p.add('/f');
+    p.Parameters.add('/s');
+    p.Parameters.add('/f');
 {$ELSE}
     If FileExists('/usr/bin/dbus-send') Then Begin
       writeLn('Shutting down Linux...');
